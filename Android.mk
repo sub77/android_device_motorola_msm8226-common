@@ -1,38 +1,109 @@
-ifneq ($(filter find7 find7op n3,$(TARGET_DEVICE)),)
-    include $(all-subdir-makefiles)
+#
+# Copyright (C) 2016 The CyanogenMod Project
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# Symlink firmware from /persist
-FIRMWARE_IMAGES := adsp.b00 adsp.b01 adsp.b02 adsp.b03 adsp.b04 adsp.b05 adsp.b06 adsp.b07 adsp.b08 adsp.b09 adsp.b10 adsp.b11 adsp.b12 adsp.mdt \
-	mba.b00 mba.mdt \
-	modem.b00 modem.b01 modem.b02 modem.b03 modem.b04 modem.b05 modem.b08 modem.b10 modem.b11 modem.b13 modem.b14 modem.b15 modem.b16 modem.b17 modem.b18 modem.b19 modem.b20 modem.b21 modem.b22 modem.b25 modem.b26 modem.b27 modem.mdt \
-	wcnss.b00 wcnss.b01 wcnss.b02 wcnss.b04 wcnss.b06 wcnss.b07 wcnss.b08 wcnss.b09 wcnss.mdt \
-	playread.b00 playread.b01 playread.b02 playread.b03 playread.mdt \
-	mc_v2.b00 mc_v2.b01 mc_v2.b02 mc_v2.b03 mc_v2.mdt \
-	isdbtmm.b00 isdbtmm.b01 isdbtmm.b02 isdbtmm.b03 isdbtmm.mdt \
-	cmnlib.b00 cmnlib.b01 cmnlib.b02 cmnlib.mdt \
-	tqs.b00 tqs.b01 tqs.b02 tqs.b03 tqs.mdt
+# WARNING: Everything listed here will be built on ALL platforms,
+# including x86, the emulator, and the SDK.  Modules must be uniquely
+# named (liblights.tuna), and must build everywhere, or limit themselves
+# to only building on ARM if they include assembly. Individual makefiles
+# are responsible for having their own logic, for fine-grained control.
 
-FIRMWARE_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(notdir $(FIRMWARE_IMAGES)))
-$(FIRMWARE_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
-	@echo "Firmware link: $@"
+LOCAL_PATH := $(call my-dir)
+
+ifneq ($(filter falcon peregrine thea titan,$(TARGET_DEVICE)),)
+include $(call all-makefiles-under,$(LOCAL_PATH))
+
+include $(CLEAR_VARS)
+
+FIRMWARE_ADSP_IMAGES := \
+    adsp.b00 adsp.b01 adsp.b02 adsp.b03 adsp.b04 \
+    adsp.b05 adsp.b06 adsp.b07 adsp.b08 adsp.b09 \
+    adsp.b10 adsp.b11 adsp.b12 adsp.mdt
+
+FIRMWARE_ADSP_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(notdir $(FIRMWARE_ADSP_IMAGES)))
+$(FIRMWARE_ADSP_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "ADSP Firmware link: $@"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
 	$(hide) ln -sf /firmware/image/$(notdir $@) $@
 
-ACDB_IMAGES := wcd9320_anc.bin wcd9320_mad_audio.bin wcd9320_mbhc.bin
-ACDB_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/wcd9320/,$(notdir $(ACDB_IMAGES)))
-$(ACDB_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
-	@echo "ACDB link: $@"
+ALL_DEFAULT_INSTALLED_MODULES += $(FIRMWARE_ADSP_SYMLINKS)
+
+FIRMWARE_KEYMASTER_IMAGES := \
+    keymaster.b00 keymaster.b01 keymaster.b02 keymaster.b03 keymaster.mdt
+
+FIRMWARE_KEYMASTER_SYMLINKS := $(addprefix $(TARGET_OUT_VENDOR)/firmware/keymaster/,$(notdir $(FIRMWARE_KEYMASTER_IMAGES)))
+$(FIRMWARE_KEYMASTER_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "Keymaster Firmware link: $@"
 	@mkdir -p $(dir $@)
 	@rm -rf $@
-	$(hide) ln -sf /data/misc/audio/$(notdir $@) $@
+	$(hide) ln -sf /firmware/image/$(notdir $@) $@
 
-ALL_DEFAULT_INSTALLED_MODULES += $(FIRMWARE_SYMLINKS) $(ACDB_SYMLINKS)
+ALL_DEFAULT_INSTALLED_MODULES += $(FIRMWARE_KEYMASTER_SYMLINKS)
 
-# Create a link for the WCNSS config file, which ends up as a writable
-# version in /data/misc/wifi
-$(shell mkdir -p $(TARGET_OUT)/etc/firmware/wlan/prima; \
-    ln -sf /data/misc/wifi/WCNSS_qcom_cfg.ini \
-            $(TARGET_OUT)/etc/firmware/wlan/prima/WCNSS_qcom_cfg.ini)
+FIRMWARE_MBA_IMAGES := \
+    mba.b00 mba.mdt
+
+FIRMWARE_MBA_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(notdir $(FIRMWARE_MBA_IMAGES)))
+$(FIRMWARE_MBA_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "MBA Firmware link: $@"
+	@mkdir -p $(dir $@)
+	@rm -rf $@
+	$(hide) ln -sf /firmware/image/$(notdir $@) $@
+
+ALL_DEFAULT_INSTALLED_MODULES += $(FIRMWARE_MBA_SYMLINKS)
+
+FIRMWARE_MODEM_IMAGES := \
+    modem.b00 modem.b01 modem.b02 modem.b03 modem.b04 modem.b05 \
+    modem.b06 modem.b07 modem.b08 modem.b10 modem.b11 modem.b12 \
+    modem.b13 modem.b15 modem.b16 modem.b17 modem.b18 modem.b19 \
+    modem.b20 modem.b21 modem.b22 modem.b24 modem.b25 modem.b26 \
+    modem.b27 modem.mdt
+
+FIRMWARE_MODEM_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(notdir $(FIRMWARE_MODEM_IMAGES)))
+$(FIRMWARE_MODEM_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "Modem Firmware link: $@"
+	@mkdir -p $(dir $@)
+	@rm -rf $@
+	$(hide) ln -sf /firmware/image/$(notdir $@) $@
+
+ALL_DEFAULT_INSTALLED_MODULES += $(FIRMWARE_MODEM_SYMLINKS)
+
+FIRMWARE_WCNSS_IMAGES := \
+    wcnss.b00 wcnss.b01 wcnss.b02 wcnss.b04 \
+    wcnss.b06 wcnss.b07 wcnss.b08 wcnss.b09 \
+    wcnss.mdt
+
+FIRMWARE_WCNSS_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(notdir $(FIRMWARE_WCNSS_IMAGES)))
+$(FIRMWARE_WCNSS_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "WCNSS Firmware link: $@"
+	@mkdir -p $(dir $@)
+	@rm -rf $@
+	$(hide) ln -sf /firmware/image/$(notdir $@) $@
+
+ALL_DEFAULT_INSTALLED_MODULES += $(FIRMWARE_WCNSS_SYMLINKS)
+
+FIRMWARE_WIDEVINE_IMAGES := \
+    widevine.b00 widevine.b01 widevine.b02 widevine.b03 widevine.mdt
+
+FIRMWARE_WIDEVINE_SYMLINKS := $(addprefix $(TARGET_OUT_ETC)/firmware/,$(notdir $(FIRMWARE_WIDEVINE_IMAGES)))
+$(FIRMWARE_WIDEVINE_SYMLINKS): $(LOCAL_INSTALLED_MODULE)
+	@echo "Widevine Firmware link: $@"
+	@mkdir -p $(dir $@)
+	@rm -rf $@
+	$(hide) ln -sf /firmware/image/$(notdir $@) $@
+
+ALL_DEFAULT_INSTALLED_MODULES += $(FIRMWARE_WIDEVINE_SYMLINKS)
 
 endif

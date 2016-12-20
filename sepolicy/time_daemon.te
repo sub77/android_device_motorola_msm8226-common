@@ -1,5 +1,5 @@
 ###########################
-# OmniROM oppo common sepolicy
+# OmniROM motorola common sepolicy
 #
 
 qmux_socket(time_daemon);

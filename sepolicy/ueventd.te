@@ -1,5 +1,5 @@
 ###########################
-# OmniROM oppo common sepolicy
+# OmniROM motorola common sepolicy
 #
 
 allow ueventd sysfs_vibrator:file rw_file_perms;

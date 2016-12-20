@@ -1,5 +1,5 @@
 ###########################
-# OmniROM oppo common sepolicy
+# OmniROM motorola common sepolicy
 #
 
 allow system_server time_daemon:unix_stream_socket connectto;

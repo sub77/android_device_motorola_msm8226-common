@@ -1,16 +1,11 @@
 # inherit from the proprietary version
--include vendor/oppo/find7a/BoardConfigVendor.mk
+-include vendor/motorola/msm8226-common/BoardConfigVendor.mk
 
-COMMON_PATH := device/oppo/msm8974-common
+COMMON_PATH := device/motorola/msm8226-common
 
 TARGET_NO_BOOTLOADER := true
 
-# Platform
-TARGET_BOARD_PLATFORM := msm8974
-TARGET_BOARD_PLATFORM_GPU := qcom-adreno330
-
-#Kernel Toolchain
-TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-linux-androideabi-
+BOARD_VENDOR := motorola-qcom
 
 # Architecture
 TARGET_CPU_VARIANT := krait
@@ -20,45 +15,25 @@ TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
 TARGET_CPU_SMP := true
 
-BOARD_KERNEL_SEPARATED_DT := true
 BOARD_KERNEL_CMDLINE := console=ttyHSL0,115200,n8 androidboot.hardware=qcom androidboot.selinux=permissive user_debug=31  msm_rtb.filter=0x37 ehci-hcd.park=3 androidboot.bootdevice=msm_sdcc.1
+BOARD_KERNEL_CMDLINE += androidboot.selinux=permissive
+BOARD_KERNEL_IMAGE_NAME := zImage-dtb
 BOARD_KERNEL_BASE := 0x00000000
 BOARD_KERNEL_PAGESIZE := 2048
-BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x02000000 --tags_offset 0x01e00000
+BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x01000000 --tags_offset 0x00000100
 BOARD_CUSTOM_BOOTIMG_MK := $(COMMON_PATH)/mkbootimg.mk
+TARGET_KERNEL_CROSS_COMPILE_PREFIX := arm-linux-androideabi-
 
-BOARD_BOOTIMAGE_PARTITION_SIZE     := 16777216
-BOARD_CACHEIMAGE_PARTITION_SIZE    := 536870912
-BOARD_PERSISTIMAGE_PARTITION_SIZE  := 33554432
-BOARD_RECOVERYIMAGE_PARTITION_SIZE := 16777216
-BOARD_SYSTEMIMAGE_PARTITION_SIZE   := 1073741824
-BOARD_USERDATAIMAGE_PARTITION_SIZE := 13747929088 # 13747945472 - 16384 for crypto footer
-#BOARD_USERDATAIMAGE_PARTITION_SIZE := 3221225472
-BOARD_FLASH_BLOCK_SIZE := 131072
-
-# global
-TARGET_SPECIFIC_HEADER_PATH := $(COMMON_PATH)/include
-BOARD_USES_QCOM_HARDWARE := true
-TARGET_USES_QCOM_BSP := true
-
-# Display
-TARGET_QCOM_DISPLAY_VARIANT := caf-msm8974
-USE_OPENGL_RENDERER := true
-TARGET_USES_ION := true
-TARGET_USES_C2D_COMPOSITION := true
-OVERRIDE_RS_DRIVER := libRSDriver_adreno.so
-MAX_EGL_CACHE_KEY_SIZE := 12*1024
-MAX_EGL_CACHE_SIZE := 2048*1024
-
-# Time Daemon
-BOARD_USES_QC_TIME_SERVICES := true
+# Architecture / Platform
+TARGET_BOARD_PLATFORM := msm8226
+TARGET_BOARD_PLATFORM_GPU := qcom-adreno305
 
 # Audio/media
 TARGET_QCOM_AUDIO_VARIANT := caf-msm8974
+TARGET_QCOM_DISPLAY_VARIANT := caf-msm8974
 TARGET_QCOM_MEDIA_VARIANT := caf-msm8974
 TARGET_ENABLE_QC_AV_ENHANCEMENTS := true
 
-# audio
 BOARD_USES_ALSA_AUDIO:= true
 AUDIO_FEATURE_ENABLED_COMPRESS_VOIP := true
 AUDIO_FEATURE_ENABLED_EXTN_FORMATS := true
@@ -72,55 +47,65 @@ AUDIO_FEATURE_ENABLED_USBAUDIO := true
 AUDIO_FEATURE_ENABLED_COMPRESS_CAPTURE := true
 AUDIO_FEATURE_ENABLED_INCALL_MUSIC := true
 
-# Camera
-USE_CAMERA_STUB := true
-
-# Crypto
-TARGET_HW_DISK_ENCRYPTION := true
-TARGET_CRYPTFS_HW_PATH := device/oppo/msm8974-common/cryptfs_hw
-
-# Disable secure discard because it's SLOW
-BOARD_SUPPRESS_SECURE_ERASE := true
-
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
 BOARD_HAVE_BLUETOOTH_QCOM := true
 BLUETOOTH_HCI_USE_MCT := true
 
-# Wifi
-BOARD_HAS_QCOM_WLAN              := true
-BOARD_WLAN_DEVICE                := qcwcn
-WPA_SUPPLICANT_VERSION           := VER_0_8_X
-BOARD_WPA_SUPPLICANT_DRIVER      := NL80211
-BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_$(BOARD_WLAN_DEVICE)
-BOARD_HOSTAPD_DRIVER             := NL80211
-BOARD_HOSTAPD_PRIVATE_LIB        := lib_driver_cmd_$(BOARD_WLAN_DEVICE)
-WIFI_DRIVER_FW_PATH_STA          := "sta"
-WIFI_DRIVER_FW_PATH_AP           := "ap"
-WIFI_DRIVER_MODULE_PATH          := "/system/lib/modules/wlan.ko"
-WIFI_DRIVER_MODULE_NAME          := "wlan"
-TARGET_USES_QCOM_WCNSS_QMI       := true
-TARGET_PROVIDES_WCNSS_QMI        := true
-TARGET_USES_WCNSS_MAC_ADDR_REV   := true
+# Camera
+TARGET_HAS_LEGACY_CAMERA_HAL1 := true
+USE_DEVICE_SPECIFIC_CAMERA := true
 
-# charger
+# Charger
 BOARD_CHARGER_DISABLE_INIT_BLANK := true
 HEALTHD_FORCE_BACKLIGHT_CONTROL := true
 HEALTHD_BACKLIGHT_ON_LEVEL := 125
 
-# power hal
-TARGET_PROVIDES_POWERHAL := true
+# Crypto
+TARGET_HW_DISK_ENCRYPTION := true
+TARGET_CRYPTFS_HW_PATH := device/motorola/msm8226-common/cryptfs_hw
+
+# Disable secure discard because it's SLOW
+BOARD_SUPPRESS_SECURE_ERASE := true
+
+# Display
+USE_OPENGL_RENDERER := true
+TARGET_USES_ION := true
+TARGET_USES_C2D_COMPOSITION := true
+OVERRIDE_RS_DRIVER := libRSDriver_adreno.so
+MAX_EGL_CACHE_KEY_SIZE := 12*1024
+MAX_EGL_CACHE_SIZE := 2048*1024
+
+# Global
+TARGET_SPECIFIC_HEADER_PATH := $(COMMON_PATH)/include
+BOARD_USES_QCOM_HARDWARE := true
+TARGET_USES_QCOM_BSP := true
+
+# Keymaster
+TARGET_KEYMASTER_WAIT_FOR_QSEE := true
 
 # Lights
 TARGET_PROVIDES_LIBLIGHT := true
 
-# keymaster
-TARGET_KEYMASTER_WAIT_FOR_QSEE := true
+# Power
+TARGET_PROVIDES_POWERHAL := true
 
-# camera hax
-TARGET_HAS_LEGACY_CAMERA_HAL1 := true
+# Time Daemon
+BOARD_USES_QC_TIME_SERVICES := true
 
-# selinux
+# Wifi
+BOARD_HAS_QCOM_WLAN := true
+BOARD_HAS_QCOM_WLAN_SDK := true
+BOARD_HOSTAPD_DRIVER := NL80211
+BOARD_HOSTAPD_PRIVATE_LIB := lib_driver_cmd_qcwcn
+BOARD_WLAN_DEVICE := qcwcn
+BOARD_WPA_SUPPLICANT_DRIVER := NL80211
+BOARD_WPA_SUPPLICANT_PRIVATE_LIB := lib_driver_cmd_qcwcn
+WIFI_DRIVER_FW_PATH_AP := "ap"
+WIFI_DRIVER_FW_PATH_STA := "sta"
+WPA_SUPPLICANT_VERSION := VER_0_8_X
+
+# Selinux
 include device/qcom/sepolicy/sepolicy.mk
 
 BOARD_SEPOLICY_DIRS += \
@@ -131,6 +116,7 @@ BOARD_SEPOLICY_DIRS += \
 # Use this flag if the board has a ext4 partition larger than 2gb
 BOARD_HAS_LARGE_FILESYSTEM := true
 TARGET_USERIMAGES_USE_EXT4 := true
+TARGET_USERIMAGES_USE_F2FS := true
 
 # TWRP specific build flags
 TW_THEME := portrait_hdpi
@@ -143,3 +129,9 @@ TW_EXCLUDE_ENCRYPTED_BACKUPS := true
 TW_INCLUDE_L_CRYPTO := true
 BOARD_USE_CUSTOM_RECOVERY_FONT := \"roboto_23x41.h\"
 TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
+
+# Properties
+TARGET_SYSTEM_PROP += $(COMMON_PATH)/system.prop
+
+# Release tools
+TARGET_RELEASETOOLS_EXTENSIONS := $(COMMON_PATH)

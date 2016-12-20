@@ -1,5 +1,5 @@
 ###########################
-# OmniROM oppo common sepolicy
+# OmniROM motorola common sepolicy
 #
 
 #allow system_app system_app_data_file:file x_file_perms;

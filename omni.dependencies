@@ -1,8 +1,8 @@
 [
   {
-    "remote": "omnirom",
-    "repository": "android_kernel_oppo_msm8974",
-    "target_path": "kernel/oppo/msm8974",
+    "remote": "github",
+    "repository": "sub77/android_kernel_motorola_msm8226",
+    "target_path": "kernel/motorola/msm8226",
     "revision": "android-7.1"
   },
   {
@@ -22,6 +22,12 @@
     "repository": "android_hardware_qcom_audio-caf-msm8974",
     "target_path": "hardware/qcom/audio-caf-msm8974",
     "revision": "android-7.0"
+  },
+  {
+    "remote": "omnirom",
+    "repository": "android_external_connectivity",
+    "target_path": "external/connectivity",
+    "revision": "android-6.0"
   },
   {
     "remote": "omnirom",
@@ -58,5 +64,11 @@
     "repository": "android_device_qcom_caf-sepolicy",
     "target_path": "device/qcom/sepolicy",
     "revision": "android-7.1"
+  },
+  {
+    "remote": "github",
+    "repository": "DirtyUnicorns/android_system_qcom",
+    "target_path": "system/qcom",
+    "revision": "n7x-caf"
   }
 ]
