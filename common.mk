@@ -25,6 +25,11 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     charger_res_images
 
+# FM
+PRODUCT_PACKAGES += \
+    FMRadio \
+    libfmjni
+
 # GPS
 PRODUCT_PACKAGES += \
     gps.msm8226
