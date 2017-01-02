@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+	<PreferenceCategory android:title="@string/category_display_title" >
+		<!-- Color Calibration -->
+		<org.omnirom.device.ColorCalibrationPreference
+			android:key="color_calibration"
+			android:title="@string/color_calibration_title_head"
+			android:summary="@string/color_calibration_summary_head" />
+
+		<!-- Sunlight Enhancement -->
+		<CheckBoxPreference
+			android:key="sunlight_enhancement"
+			android:title="@string/sunlight_enhancement_title_head"
+			android:summary="@string/sunlight_enhancement_summary_head" />
+
+	</PreferenceCategory>
+
+	<PreferenceCategory android:title="@string/category_vibration_title">
+		<!-- Vibration -->
+		<org.omnirom.device.VibrationPreference
+			android:key="vibration"
+			android:title="@string/vibration_title_head"
+			android:summary="@string/vibration_summary_head" />
+
+	</PreferenceCategory>
+
+</PreferenceScreen>
