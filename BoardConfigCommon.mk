@@ -7,6 +7,9 @@ TARGET_NO_BOOTLOADER := true
 
 BOARD_VENDOR := motorola-qcom
 
+# ANT+
+BOARD_ANT_WIRELESS_DEVICE := "qualcomm-smd"
+
 # Architecture
 TARGET_CPU_VARIANT := krait
 TARGET_CPU_ABI := armeabi-v7a
