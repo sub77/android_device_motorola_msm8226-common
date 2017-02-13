@@ -154,6 +154,12 @@ PRODUCT_PACKAGES += \
 PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     persist.sys.usb.config=mtp
 
+# /system FS resize
+PRODUCT_PACKAGES += \
+    e2fsck_static \
+    resize2fs_static
+
+# USB
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
 
