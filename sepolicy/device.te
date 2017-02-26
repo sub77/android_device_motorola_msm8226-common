@@ -1,2 +1,9 @@
+# Partitions
+type cid_block_device, dev_type;
+type clogo_block_device, dev_type;
+type logs_block_device, dev_type;
+type hob_block_device, dev_type;
+type pds_block_device, dev_type;
 type persist_block_device, dev_type;
 
+type utags_block_device, dev_type;
