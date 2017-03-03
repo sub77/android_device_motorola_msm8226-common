@@ -320,4 +320,7 @@
 
     <!-- Is the device capable of hot swapping an ICC Card -->
     <bool name="config_hotswapCapable">true</bool>
+
+    <!-- Whether to enable HumanInteractionController by default -->
+    <bool name="config_HICEnabledDefault">false</bool>
 </resources>
