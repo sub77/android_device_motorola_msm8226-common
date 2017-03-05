@@ -1,5 +1,0 @@
-#============= mpdecision ==============
-allow mpdecision socket_device:dir { add_name write };
-allow mpdecision socket_device:sock_file { create setattr };
-allow mpdecision system_data_file:dir { add_name write };
-allow mpdecision system_data_file:file { append create open };

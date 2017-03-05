@@ -1,8 +1,0 @@
-###########################
-# OmniROM motorola common sepolicy
-#
-
-allow ueventd sysfs_vibrator:file rw_file_perms;
-allow ueventd sysfs_vibrator:dir search;
-
-allow ueventd sysfs_devices_sensors:file create_file_perms;
