@@ -27,7 +27,11 @@ allow bluetooth_loader persist_file:dir { add_name write };
 allow bluetooth_loader persist_file:file { create_file_perms };
 
 # Talk to init over the property socket
-unix_socket_connect(bluetooth_loader, property, init)
+
+# deprecated: unix_socket_connect(bluetooth_loader, property, init)
+# Please use set_prop(bluetooth_loader, <property name>) instead.
+# unix_socket_connect(bluetooth_loader, property, init);
+
 # Set persist.service.bdroid.* and bluetooth.* property values
 allow bluetooth_loader bluetooth_prop:property_service set;
 
@@ -41,5 +45,3 @@ allow bluetooth_loader hci_attach_dev:chr_file rw_file_perms;
 allow hci_attach qmuxd_socket:dir { write add_name remove_name search };
 allow hci_attach qmuxd_socket:sock_file { create setattr getattr write unlink };
 allow hci_attach qmuxd:unix_stream_socket { connectto };
-#
-

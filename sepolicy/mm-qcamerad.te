@@ -11,4 +11,12 @@ allow servicemanager mm-qcamerad:file { open read };
 allow servicemanager mm-qcamerad:process { getattr };
 binder_call(mm-qcamerad, servicemanager)
 binder_call(mm-qcamerad, system_server)
-unix_socket_connect(mm-qcamerad, mpctl, mpdecision)
+
+# deprecated: unix_socket_connect(mm-qcamerad, mpctl, mpdecision)
+# Please use set_prop(mm-qcamerad, <property name>) instead.
+# unix_socket_connect(mm-qcamerad, mpctl, mpdecision);
+
+#============= mm-qcamerad ==============
+allow mm-qcamerad socket_device:sock_file write;
+allow mm-qcamerad system_data_file:file { create write };
+allow mm-qcamerad system_data_file:sock_file { create unlink };
