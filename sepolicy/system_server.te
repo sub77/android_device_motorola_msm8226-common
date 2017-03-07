@@ -1,10 +1,9 @@
 allow system_server sensors_data_file:dir create_dir_perms;
 allow system_server sensors_data_file:fifo_file rw_file_perms;
+allow system_server shell_prop:property_service set;
 allow system_server sysfs_devices_sensors:dir search;
 allow system_server sysfs_devices_sensors:file rw_file_perms;
 allow system_server sysfs_devices_sensors:lnk_file read;
-allow system_server vibeamp_sysfs:file { getattr open read write };
 allow system_server sysfs_usb_supply:lnk_file read;
-
-allow system_server shell_prop:property_service set;
 allow system_server time_daemon:unix_stream_socket connectto;
+allow system_server vibeamp_sysfs:file { getattr open read write };

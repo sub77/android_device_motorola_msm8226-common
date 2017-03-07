@@ -34,10 +34,15 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     charger_res_images
 
+# Ebtables
+PRODUCT_PACKAGES += \
+    ebtables \
+    ethertypes \
+    libebtc
+
 # FM
 PRODUCT_PACKAGES += \
-    FMRadio \
-    libfmjni
+    FMRadio
 
 # GPS
 PRODUCT_PACKAGES += \
@@ -104,9 +109,10 @@ PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml
 
-# MotoGParts
+# MotoGParts/CMActions
 PRODUCT_PACKAGES += \
-    MotoGParts
+    MotoGParts \
+    CMActions
 
 # OMX
 PRODUCT_PACKAGES += \
@@ -126,14 +132,14 @@ PRODUCT_COPY_FILES += \
 
 # Radio
 PRODUCT_PACKAGES += \
-    libcnefeatureconfig
+    libcnefeatureconfig \
+    libqsap_sdk
 
 # Ramdisk
 PRODUCT_COPY_FILES += \
-    $(COMMON_PATH)/rootdir/init.qcom.power.rc:root/init.qcom.power.rc \
     $(COMMON_PATH)/rootdir/init.qcom.rc:root/init.qcom.rc \
-    $(COMMON_PATH)/rootdir/init.qcom.power.rc:root/init.qcom.recovery.rc \
     $(COMMON_PATH)/rootdir/init.qcom.usb.rc:root/init.qcom.usb.rc \
+    $(COMMON_PATH)/rootdir/init.recovery.qcom.rc:root/init.recovery.qcom.rc \
     $(COMMON_PATH)/rootdir/ueventd.qcom.rc:root/ueventd.qcom.rc
 
 PRODUCT_COPY_FILES += \
@@ -151,8 +157,8 @@ PRODUCT_PACKAGES += \
     libshims_thermal
 
 # USB mount
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=mtp
+#PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+#    persist.sys.usb.config=mtp
 
 # /system FS resize
 PRODUCT_PACKAGES += \
@@ -170,32 +176,26 @@ PRODUCT_PACKAGES += \
     VisualizationWallpapers \
     librs_jni
 
-# Wifi
-PRODUCT_COPY_FILES += \
-    $(COMMON_PATH)/wifi/WCNSS_cfg.dat:system/etc/firmware/wlan/prima/WCNSS_cfg.dat \
-    $(COMMON_PATH)/wifi/WCNSS_qcom_cfg.ini:system/etc/wifi/WCNSS_qcom_cfg.ini
-
-PRODUCT_PACKAGES += \
-    wcnss_service \
-    WCNSS_qcom_wlan_factory_nv.bin
-
-PRODUCT_PACKAGES += \
-    hostapd \
-    wpa_supplicant \
-    wpa_supplicant.conf
-
-PRODUCT_PACKAGES += \
-    hostapd_default.conf \
-    p2p_supplicant_overlay.conf \
-    wpa_supplicant_overlay.conf
-
-PRODUCT_PACKAGES += \
-    libcurl \
-    libqsap_sdk \
-    libQWiFiSoftApCfg
-
 # Utilities
 PRODUCT_PACKAGES += \
     mkfs.f2fs \
     fsck.f2fs \
     fibmap.f2fs
+
+# Wifi
+PRODUCT_COPY_FILES += \
+    $(COMMON_PATH)/wifi/hostapd.conf:system/etc/hostapd/hostapd_default.conf \
+    $(COMMON_PATH)/wifi/p2p_supplicant_overlay.conf:system/etc/wifi/p2p_supplicant_overlay.conf \
+    $(COMMON_PATH)/wifi/wpa_supplicant_overlay.conf:system/etc/wifi/wpa_supplicant_overlay.conf \
+    $(COMMON_PATH)/wifi/WCNSS_cfg.dat:system/etc/firmware/wlan/prima/WCNSS_cfg.dat \
+    $(COMMON_PATH)/wifi/WCNSS_qcom_cfg.ini:system/etc/wifi/WCNSS_qcom_cfg.ini
+
+PRODUCT_PACKAGES += \
+    dhcpcd.conf \
+    hostapd \
+    libcurl \
+    libQWiFiSoftApCfg \
+    libwpa_client \
+    wcnss_service \
+    wpa_supplicant \
+    wpa_supplicant.conf
