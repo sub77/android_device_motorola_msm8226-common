@@ -45,7 +45,7 @@
     "remote": "omnirom",
     "repository": "android_packages_apps_SnapdragonCamera",
     "target_path": "packages/apps/SnapdragonCamera",
-    "revision": "android-7.0"
+    "revision": "android-7.1"
   },
   {
     "remote": "omnirom",
@@ -61,21 +61,15 @@
   },
   {
     "remote": "omnirom",
-    "repository": "android_packages_apps_FMRadio",
-    "target_path": "packages/apps/FMRadio",
-    "revision": "android-7.1"
-  },
-  {
-    "remote": "omnirom",
     "repository": "android_hardware_qcom_fm",
     "target_path": "hardware/qcom/fm",
     "revision": "android-7.1"
   },
   {
-    "remote": "github",
-    "repository": "DirtyUnicorns/android_packages_apps_FMRadio",
+    "remote": "omnirom",
+    "repository": "android_packages_apps_FMRadio",
     "target_path": "packages/apps/FMRadio",
-    "revision": "n7x-caf"
+    "revision": "android-7.1"
   },
   {
     "remote": "omnirom",
