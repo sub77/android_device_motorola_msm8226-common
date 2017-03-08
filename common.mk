@@ -42,7 +42,8 @@ PRODUCT_PACKAGES += \
 
 # FM
 PRODUCT_PACKAGES += \
-    FMRadio
+    FMRadio \
+    libfmjni
 
 # GPS
 PRODUCT_PACKAGES += \
