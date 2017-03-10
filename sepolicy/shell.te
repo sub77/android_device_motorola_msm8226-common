@@ -1,0 +1,1 @@
+allow shell userinit_exec:file getattr;

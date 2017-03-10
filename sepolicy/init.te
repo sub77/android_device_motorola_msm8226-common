@@ -14,3 +14,9 @@ allow init sysfs_battery_supply:lnk_file read;
 
 # Allow init to write in debugfs
 allow init debugfs:file write;
+
+allow init self:process setcurrent;
+allow init device:blk_file { relabelfrom };
+
+#allow qti_init_shell default_prop:property_service set;
+allow init property_socket:sock_file write;
