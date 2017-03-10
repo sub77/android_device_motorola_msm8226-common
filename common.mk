@@ -157,9 +157,12 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     libshims_thermal
 
-# USB mount
-#PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-#    persist.sys.usb.config=mtp
+# USB/adb
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    persist.sys.usb.config=adb
+
+ADDITIONAL_DEFAULT_PROPERTIES += \
+    ro.adb.secure=0
 
 # /system FS resize
 PRODUCT_PACKAGES += \
