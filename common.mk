@@ -148,7 +148,8 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/rootdir/init.mmi.boot.sh:root/init.mmi.boot.sh \
     $(COMMON_PATH)/rootdir/init.mmi.touch.sh:root/init.mmi.touch.sh \
     $(COMMON_PATH)/rootdir/init.qcom.bt.sh:root/init.qcom.bt.sh \
-    $(COMMON_PATH)/rootdir/init.qcom.ril.sh:root/init.qcom.ril.sh
+    $(COMMON_PATH)/rootdir/init.qcom.ril.sh:root/init.qcom.ril.sh \
+    $(COMMON_PATH)/rootdir/init.qcom.usb.sh:root/init.qcom.usb.sh
 
 # Thermal-engine
 PRODUCT_COPY_FILES += \
@@ -156,13 +157,6 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_PACKAGES += \
     libshims_thermal
-
-# USB/adb
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    persist.sys.usb.config=adb
-
-ADDITIONAL_DEFAULT_PROPERTIES += \
-    ro.adb.secure=0
 
 # USB
 PRODUCT_PACKAGES += \
