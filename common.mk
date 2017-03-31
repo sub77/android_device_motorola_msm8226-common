@@ -164,11 +164,6 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
 ADDITIONAL_DEFAULT_PROPERTIES += \
     ro.adb.secure=0
 
-# /system FS resize
-PRODUCT_PACKAGES += \
-    e2fsck_static \
-    resize2fs_static
-
 # USB
 PRODUCT_PACKAGES += \
     com.android.future.usb.accessory
