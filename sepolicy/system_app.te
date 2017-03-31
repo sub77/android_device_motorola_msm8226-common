@@ -2,3 +2,4 @@ allow system_app shell_data_file:dir search;
 allow system_app vibeamp_sysfs:file { getattr open read write };
 allow system_app media_rw_data_file:dir { add_name create remove_name search write };
 allow system_app media_rw_data_file:file { create open rename write };
+dontaudit system_app netd_service:service_manager find;
