@@ -143,6 +143,3 @@ TW_BRIGHTNESS_PATH := /sys/class/leds/lcd-backlight/brightness
 
 # Properties
 TARGET_SYSTEM_PROP += $(COMMON_PATH)/system.prop
-
-# Release tools
-TARGET_RELEASETOOLS_EXTENSIONS := $(COMMON_PATH)
