@@ -269,7 +269,7 @@
             64 - Volume rocker
          For example, a device with Home, Back and Menu keys would set this
          config to 7. -->
-    <integer name="config_deviceHardwareWakeKeys">64</integer>
+    <!-- integer name="config_deviceHardwareWakeKeys">64</integer> -->
 
     <!-- Is the device capable of hot swapping an UICC Card -->
     <bool name="config_hotswapCapable">true</bool>
@@ -417,5 +417,5 @@
     <bool name="config_eap_sim_based_auth_supported">false</bool>
 
     <!-- Whether to enable HumanInteractionController by default -->
-    <bool name="config_HICEnabledDefault">false</bool>
+    <!-- bool name="config_HICEnabledDefault">false</bool> -->
 </resources>
