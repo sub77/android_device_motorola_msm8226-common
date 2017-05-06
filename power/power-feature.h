@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The LineageOS Project
+ * Copyright (C) 2015 The CyanogenMod Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package vendor.lineage.power@1.0;
 
-interface ILineagePower {
-    /**
-     * getFeature() is called to get the current value of a particular
-     * feature or capability from the hardware or PowerHAL
-     *
-     * @param feature Feature which needs to get
-     * @return the state of power states the device supports
-     */
-    getFeature(LineageFeature feature) generates (int32_t value);
-};
+#ifndef _QCOM_POWER_FEATURE_H
+#define _QCOM_POWER_FEATURE_H
+
+#include <hardware/power.h>
+
+void set_device_specific_feature(struct power_module *module, feature_t feature, int state);
+
+#endif

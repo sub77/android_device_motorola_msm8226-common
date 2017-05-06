@@ -1,4 +1,0 @@
-hidl_package_root {
-    name: "vendor.lineage",
-    path: "device/motorola/msm8226-common/power/interfaces",
-}

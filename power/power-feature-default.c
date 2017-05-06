@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2018 The LineageOS Project
+ * Copyright (C) 2015 The CyanogenMod Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package vendor.lineage.power@1.0;
 
-/** Power hint identifiers passed to powerHint() */
-enum LineagePowerHint : uint32_t {
-    /**
-     * An operation is happening where it would be ideal for the CPU to
-     * be boosted for a specific duration. The data parameter is an
-     * integer value of the boost duration in microseconds.
-     */
-    CPU_BOOST = 0x00000110,
+#include <hardware/power.h>
+#include "power-feature.h"
 
-    SET_PROFILE = 0x00000111
-};
+void set_device_specific_feature(struct power_module *module __unused,
+    feature_t feature __unused, int state __unused)
+{
+}
 
-enum LineageFeature : uint32_t {
-    SUPPORTED_PROFILES = 0x00001000
-};
