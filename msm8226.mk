@@ -186,7 +186,8 @@ PRODUCT_PACKAGES += \
 
 # Power
 PRODUCT_PACKAGES += \
-    power.qcom
+    android.hardware.power@1.0-impl \
+    power.msm8226
 
 # Radio
 PRODUCT_PACKAGES += \
