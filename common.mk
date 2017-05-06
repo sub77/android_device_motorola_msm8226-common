@@ -96,6 +96,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/configs/sec_config:system/etc/sec_config
 
+# Keylayouts
+PRODUCT_COPY_FILES += \
+    $(COMMON_PATH)/keylayout/synaptics.kl:system/usr/keylayout/synaptics.kl
+
 # Lights
 PRODUCT_PACKAGES += \
     lights.msm8226
@@ -108,6 +112,10 @@ PRODUCT_COPY_FILES += \
     frameworks/av/media/libstagefright/data/media_codecs_google_audio.xml:system/etc/media_codecs_google_audio.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_telephony.xml:system/etc/media_codecs_google_telephony.xml \
     frameworks/av/media/libstagefright/data/media_codecs_google_video.xml:system/etc/media_codecs_google_video.xml
+
+# Moto G Parts
+PRODUCT_PACKAGES += \
+    MotoGParts
 
 # OMX
 PRODUCT_PACKAGES += \
