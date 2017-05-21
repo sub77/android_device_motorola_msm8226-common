@@ -312,7 +312,4 @@
     <!-- Is the device capable of hot swapping an ICC Card -->
     <bool name="config_hotswapCapable">true</bool>
 
-    <!-- IpReachability monitor enable/Disable -->
-    <bool name="config_wifi_ipreachability_monitor">true</bool>
-
 </resources>
