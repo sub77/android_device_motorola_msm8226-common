@@ -83,6 +83,7 @@ PRODUCT_COPY_FILES += \
 
 # Camera
 PRODUCT_PACKAGES += \
+    libboringssl-compat \
     libxml2 \
     libshims_camera \
     camera.msm8226 \
