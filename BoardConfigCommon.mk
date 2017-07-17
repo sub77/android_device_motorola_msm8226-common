@@ -94,6 +94,9 @@ TARGET_PROVIDES_LIBLIGHT := true
 # Partitions
 BOARD_FLASH_BLOCK_SIZE := 131072
 
+# Power
+TARGET_PROVIDES_POWERHAL := true
+
 # Properties
 TARGET_SYSTEM_PROP += $(VENDOR_PATH)/system.prop
 
