@@ -111,8 +111,7 @@ PRODUCT_COPY_FILES += \
 
 # MotoGParts/CMActions
 PRODUCT_PACKAGES += \
-    MotoGParts \
-    CMActions
+    MotoGParts
 
 # OMX
 PRODUCT_PACKAGES += \
