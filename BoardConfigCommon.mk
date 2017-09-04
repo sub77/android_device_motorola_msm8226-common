@@ -123,3 +123,5 @@ TARGET_USERIMAGES_USE_F2FS := true
 
 # Properties
 TARGET_SYSTEM_PROP += $(COMMON_PATH)/system.prop
+
+DEVICE_MANIFEST_FILE := device/motorola/msm8226-common/manifest.xml
