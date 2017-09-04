@@ -1,3 +1,2 @@
-allow rmt_storage ssd_device:blk_file r_file_perms;
-
-r_dir_file(rmt_storage, firmware_file)
+# Allow rmt_storage to backup/restore NV contents
+allow rmt_storage nvbackup_block_device:blk_file rw_file_perms;
