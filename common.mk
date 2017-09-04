@@ -129,6 +129,10 @@ PRODUCT_PACKAGES += \
     libxml2 \
     libboringssl-compat
 
+# OMX properties
+PRODUCT_PROPERTY_OVERRIDES += \
+    persist.media.treble_omx=false
+
 # Power
 PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/configs/power_profiles.xml:system/etc/power_profiles.xml
