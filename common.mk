@@ -15,6 +15,7 @@ COMMON_PATH := device/motorola/msm8226-common
 # if the xhdpi doesn't exist.
 PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
+PRODUCT_PROPERTY_OVERRIDES += debug.hwui.use_buffer_age=false
 
 # ANT+
 PRODUCT_PACKAGES += \
