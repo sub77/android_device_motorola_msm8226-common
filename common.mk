@@ -79,6 +79,7 @@ PRODUCT_COPY_FILES += \
 # Hardware modules to build
 PRODUCT_PACKAGES += \
     libbt-vendor \
+    android.hardware.drm@1.0-impl \
     android.hardware.bluetooth@1.0-impl \
     android.hardware.wifi@1.0-service \
     android.hardware.renderscript@1.0-impl \
