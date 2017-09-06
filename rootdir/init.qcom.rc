@@ -527,6 +527,7 @@ on property:ro.use_data_netmgrd=false
 
 service netmgrd /system/bin/netmgrd
     class main
+    user root
     group radio system wakelock
 
 service qcamerasvr /system/bin/mm-qcamera-daemon
