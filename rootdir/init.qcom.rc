@@ -463,7 +463,7 @@ on property:bluetooth.hciattach=true
 service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     class late_start
     user bluetooth
-    group bluetooth net_bt_admin
+    group bluetooth net_bt_admin system
     disabled
     oneshot
 
