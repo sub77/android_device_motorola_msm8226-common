@@ -29,6 +29,10 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/configs/audio_policy.conf:system/etc/audio_policy.conf
 
+# Camera
+#PRODUCT_PACKAGES += \
+    camera-wrapper.msm8226
+
 # Charger
 PRODUCT_PACKAGES += \
     charger_res_images
@@ -82,7 +86,6 @@ PRODUCT_PACKAGES += \
     audio.a2dp.default \
     audio.usb.default \
     audio.r_submix.default \
-    camera.msm8226 \
     libaudio-resampler \
     audiod \
     libqcompostprocbundle \
