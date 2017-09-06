@@ -108,7 +108,8 @@ PRODUCT_PACKAGES += \
     libqcomvoiceprocessing \
     power.msm8226 \
     keystore.msm8226 \
-    sensors.msm8226
+    sensors.msm8226 \
+    librmnetctl
 
 # IPC Router security configuration
 PRODUCT_COPY_FILES += \
