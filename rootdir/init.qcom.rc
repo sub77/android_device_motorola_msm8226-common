@@ -571,12 +571,6 @@ service time_daemon /system/bin/time_daemon
     user root
     group root
 
-service wcnss-service /system/bin/wcnss_service
-    class late_start
-    user root
-    group system wifi
-    oneshot
-
 # WPA
 service p2p_supplicant /system/bin/wpa_supplicant \
     -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf \
