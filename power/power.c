@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2012 The Android Open Source Project
- * Copyright (C) 2016 The OmniROM Project
+ * Copyright (C) 2014 The OmniROM Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@
 #include <sys/un.h>
 #include <fcntl.h>
 #include <dlfcn.h>
+#include <unistd.h>
 
 #define LOG_TAG "PowerHAL"
 #include <utils/Log.h>
@@ -32,18 +33,17 @@
 
 #include "util.h"
 
-// #define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 
-#define DOUBLE_TAP_FILE "/proc/touchpanel/double_tap_enable"
+#define DOUBLE_TAP_FILE "/sys/kernel/touchscreen/double_tap_enable"
+#define DOUBLE_TAP_FILE_ALT "/proc/touchpanel/double_tap_enable"
 
-static void power_init(struct power_module __unused *module)
-{
+static void power_init(struct power_module __unused *module) {
     ALOGI("%s", __func__);
+
 }
 
-static void power_set_interactive(struct power_module __unused *module, int on)
-{
-    ALOGV("%s %s", __func__, (on ? "ON" : "OFF"));
+static void power_set_interactive(struct power_module __unused *module, int on) {
 }
 
 static void power_hint(struct power_module __unused *module, power_hint_t hint,
@@ -62,8 +62,11 @@ static void power_hint(struct power_module __unused *module, power_hint_t hint,
 
 void set_feature(struct power_module __unused *module, feature_t feature, int state) {
     if (feature == POWER_FEATURE_DOUBLE_TAP_TO_WAKE) {
-        ALOGI("%s POWER_FEATURE_DOUBLE_TAP_TO_WAKE %s", __func__, (state ? "ON" : "OFF"));
-        sysfs_write(DOUBLE_TAP_FILE, state ? "1" : "0");
+        if (access(DOUBLE_TAP_FILE, F_OK) == 0) {
+            sysfs_write(DOUBLE_TAP_FILE, state ? "1" : "0");
+        } else if (access(DOUBLE_TAP_FILE_ALT, F_OK) == 0) {
+            sysfs_write(DOUBLE_TAP_FILE_ALT, state ? "1" : "0");
+        }
     }
 }
 
