@@ -31,7 +31,7 @@ PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/configs/audio_policy.conf:system/etc/audio_policy.conf
 
 # Camera
-#PRODUCT_PACKAGES += \
+PRODUCT_PACKAGES += \
     camera-wrapper.msm8226
 
 # Charger
