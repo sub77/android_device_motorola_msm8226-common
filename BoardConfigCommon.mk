@@ -110,7 +110,7 @@ WPA_SUPPLICANT_VERSION := VER_0_8_X
 # Selinux
 include device/qcom/sepolicy/sepolicy.mk
 
-BOARD_SEPOLICY_DIRS += \
+#BOARD_SEPOLICY_DIRS += \
     $(COMMON_PATH)/sepolicy
 
 # Recovery:Start
