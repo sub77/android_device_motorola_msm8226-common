@@ -1,5 +1,4 @@
-/*
- * Copyright (C) 2007 The Android Open Source Project
+/* Copyright (C) 2007 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -154,6 +153,7 @@
 #define AID_ISOLATED_END   99999 /* end of uids for fully isolated sandboxed processes */
 
 #define AID_USER        100000  /* offset for uid ranges for each user */
+#define AID_USER_OFFSET 100000  /* offset for uid ranges for each user */
 
 #define AID_SHARED_GID_START 50000 /* start of gids for apps in each user to share */
 #define AID_SHARED_GID_END   59999 /* start of gids for apps in each user to share */
