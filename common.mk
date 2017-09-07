@@ -33,7 +33,8 @@ PRODUCT_COPY_FILES += \
 # Camera
 PRODUCT_PACKAGES += \
     camera-wrapper.msm8226 \
-    libshims_camera
+    libshims_camera \
+    libshim_qcopt
 
 # Charger
 PRODUCT_PACKAGES += \
