@@ -32,7 +32,8 @@ PRODUCT_COPY_FILES += \
 
 # Camera
 PRODUCT_PACKAGES += \
-    camera-wrapper.msm8226
+    camera-wrapper.msm8226 \
+    libshims_camera
 
 # Charger
 PRODUCT_PACKAGES += \
@@ -158,6 +159,10 @@ PRODUCT_PACKAGES += \
 # OMX properties
 PRODUCT_PROPERTY_OVERRIDES += \
     persist.media.treble_omx=false
+
+# Perf
+PRODUCT_PACKAGES += \
+    libshims_atomic
 
 # Power
 PRODUCT_COPY_FILES += \
