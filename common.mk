@@ -45,7 +45,7 @@ PRODUCT_PACKAGES += \
     libebtc
 
 # FM
-PRODUCT_PACKAGES += \
+#PRODUCT_PACKAGES += \
     FMRadio \
     libfmjni
 
