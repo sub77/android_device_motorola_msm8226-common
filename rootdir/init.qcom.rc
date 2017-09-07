@@ -174,6 +174,12 @@ on post-fs-data
     # Create directory for cutback
     mkdir /data/misc/cutback 0770 radio wifi
 
+    # Wifi firmware reload path
+    chown wifi wifi /sys/module/wlan/parameters/fwpath
+
+    # Mark wifi driver as unloaded - "ok" indicates loaded
+    setprop wlan.driver.status not_ok
+
     # To remove apanic proc entry
     write /proc/apanic_console 1
 
@@ -569,13 +575,18 @@ service thermal-engine /system/bin/thermal-engine -c /etc/thermal-engine-8226.co
     user root
     group root
 
+service wcnss-service /system/bin/wcnss_service
+    class main
+    user system
+    group system wifi qcom_diag radio
+
 service time_daemon /system/bin/time_daemon
     class late_start
     user root
     group root
 
 # WPA
-service p2p_supplicant /system/bin/wpa_supplicant \
+service p2p_supplicant /system/vendor/bin/hw/wpa_supplicant \
     -ip2p0 -Dnl80211 -c/data/misc/wifi/p2p_supplicant.conf \
     -I/system/etc/wifi/p2p_supplicant_overlay.conf -N \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
@@ -591,7 +602,7 @@ service p2p_supplicant /system/bin/wpa_supplicant \
     disabled
     oneshot
 
-service wpa_supplicant /system/bin/wpa_supplicant \
+service wpa_supplicant /system/vendor/bin/hw/wpa_supplicant \
     -iwlan0 -Dnl80211 -c/data/misc/wifi/wpa_supplicant.conf \
     -I/system/etc/wifi/wpa_supplicant_overlay.conf \
     -e/data/misc/wifi/entropy.bin -g@android:wpa_wlan0
