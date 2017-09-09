@@ -49,7 +49,9 @@ BLUETOOTH_HCI_USE_MCT := true
 
 # Camera
 TARGET_HAS_LEGACY_CAMERA_HAL1 := true
-USE_DEVICE_SPECIFIC_CAMERA := true
+#USE_DEVICE_SPECIFIC_CAMERA := true
+KERNEL_HAS_FINIT_MODULE := false
+USE_CAMERA_STUB := true
 
 # Charger
 BOARD_CHARGING_MODE_BOOTING_LPM := /sys/mmi_lpm/lpm_mode
@@ -108,7 +110,6 @@ WPA_SUPPLICANT_VERSION := VER_0_8_X
 WIFI_DRIVER_FW_PATH_STA   := "sta"
 WIFI_DRIVER_FW_PATH_AP    := "ap"
 TARGET_WLAN_VARIANT := caf
-
 # Selinux
 include device/qcom/sepolicy/sepolicy.mk
 

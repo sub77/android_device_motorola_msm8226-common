@@ -226,7 +226,7 @@ PRODUCT_PACKAGES += \
     dhcpcd.conf \
     hostapd \
     libcurl \
-    libQWiFiSoftApCfg \
+    #libQWiFiSoftApCfg \
     libwpa_client \
     wcnss_service \
     wificond \

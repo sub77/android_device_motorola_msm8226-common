@@ -43,6 +43,10 @@ on early-init
 
     symlink /data/tombstones /tombstones
 
+on property:ro.debuggable=1
+    write /sys/class/android_usb/android0/enable 1
+    start adbd
+
 on init
     export LD_SHIM_LIBS /system/bin/thermal-engine|libshims_thermal.so:/system/bin/mpdecision|libshims_atomic.so:/system/bin/mm-qcamera-daemon|libsensor.so:/system/lib/hw/camera.vendor.msm8226.so|libshims_camera.so:/system/vendor/lib/libqc-opt.so|libshim_qcopt.so 
 
