@@ -26,6 +26,25 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     external/ant-wireless/antradio-library/com.dsi.ant.antradio_library.xml:system/etc/permissions/com.dsi.ant.antradio_library.xml
 
+# Audio
+PRODUCT_PACKAGES += \
+    audio.primary.msm8226 \
+    audio_policy.msm8226 \
+    audio.a2dp.default \
+    audio.usb.default \
+    audio.r_submix.default
+
+PRODUCT_PACKAGES += \
+    libaudio-resampler \
+    libqcompostprocbundle \
+    libqcomvisualizer \
+    libqcomvoiceprocessing
+
+PRODUCT_PACKAGES += \
+    android.hardware.audio@2.0-impl \
+    android.hardware.audio@2.0-service \
+    android.hardware.audio.effect@2.0-impl
+
 # Audio config files
 PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/configs/audio_policy.conf:system/etc/audio_policy.conf
@@ -99,9 +118,6 @@ PRODUCT_PACKAGES += \
     android.hardware.graphics.allocator@2.0-service \
     android.hardware.graphics.mapper@2.0-impl \
     android.hardware.memtrack@1.0-impl \
-    android.hardware.audio@2.0-impl \
-    android.hardware.audio@2.0-service \
-    android.hardware.audio.effect@2.0-impl \
     android.hardware.usb@1.0-service \
     android.hardware.power@1.0-service \
     android.hardware.power@1.0-impl \
@@ -109,16 +125,6 @@ PRODUCT_PACKAGES += \
     gralloc.msm8226 \
     copybit.msm8226 \
     memtrack.msm8226 \
-    audio.primary.msm8226 \
-    audio_policy.msm8226 \
-    audio.a2dp.default \
-    audio.usb.default \
-    audio.r_submix.default \
-    libaudio-resampler \
-    audiod \
-    libqcompostprocbundle \
-    libqcomvisualizer \
-    libqcomvoiceprocessing \
     power.msm8226 \
     keystore.msm8226 \
     sensors.msm8226 \
