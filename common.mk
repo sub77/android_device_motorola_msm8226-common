@@ -169,6 +169,10 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/configs/power_profiles.xml:system/etc/power_profiles.xml
 
+# Properties
+PRODUCT_PROPERTY_OVERRIDES += \
+    ro.sys.sdcardfs=false
+
 # Radio
 PRODUCT_PACKAGES += \
     libcnefeatureconfig \
@@ -214,11 +218,14 @@ PRODUCT_PACKAGES += \
     fsck.f2fs \
     fibmap.f2fs
 
-# Wifi
+# Wifi Config
 PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/wifi/hostapd.conf:system/etc/hostapd/hostapd_default.conf \
     $(COMMON_PATH)/wifi/p2p_supplicant_overlay.conf:system/vendor/etc/wifi/p2p_supplicant_overlay.conf \
-    $(COMMON_PATH)/wifi/wpa_supplicant_overlay.conf:system/vendor/etc/wifi/wpa_supplicant_overlay.conf \
+    $(COMMON_PATH)/wifi/wpa_supplicant_overlay.conf:system/vendor/etc/wifi/wpa_supplicant_overlay.conf
+
+# Wifi Firmware
+PRODUCT_COPY_FILES += \
     $(COMMON_PATH)/wifi/WCNSS_cfg.dat:system/etc/firmware/wlan/prima/WCNSS_cfg.dat \
     $(COMMON_PATH)/wifi/WCNSS_qcom_cfg.ini:system/etc/wifi/WCNSS_qcom_cfg.ini
 
@@ -226,7 +233,7 @@ PRODUCT_PACKAGES += \
     dhcpcd.conf \
     hostapd \
     libcurl \
-    #libQWiFiSoftApCfg \
+    libQWiFiSoftApCfg \
     libwpa_client \
     wcnss_service \
     wificond \

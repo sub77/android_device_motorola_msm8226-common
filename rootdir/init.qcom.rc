@@ -83,9 +83,6 @@ on fs
     write /proc/sys/vm/page-cluster 0
 
 on post-fs-data
-    mkdir /data/tombstones 0771 system system
-    mkdir /tombstones/modem 0771 system system
-
     # Create directory used by audio subsystem
     mkdir /data/misc/audio 0770 audio audio
 
@@ -153,7 +150,7 @@ on post-fs-data
     #Create a folder for SRS to be able to create a usercfg file
     mkdir /data/data/media 0770 media media
 
-   # Create moodle directory that MOODLE APP can write to
+    # Create moodle directory that MOODLE APP can write to
     mkdir /data/local/moodle 0770 graphics mot_tcmd
 
     # services directory for activation
@@ -249,8 +246,13 @@ on boot
 
     setprop wifi.interface wlan0
 
-    write /sys/class/android_usb/android0/enable 1
-    start adbd
+# Subsytem Restart
+    #adsp
+    write /sys/bus/msm_subsys/devices/subsys0/restart_level "related"
+    #modem
+    write /sys/bus/msm_subsys/devices/subsys1/restart_level "related"
+    #venus
+    write /sys/bus/msm_subsys/devices/subsys2/restart_level "related"
 
 #   Define TCP buffer sizes for various networks
 #   ReadMin, ReadInitial, ReadMax, WriteMin, WriteInitial, WriteMax,
@@ -476,7 +478,7 @@ on property:bluetooth.hciattach=true
 service hciattach /system/bin/sh /system/etc/init.qcom.bt.sh
     class late_start
     user bluetooth
-    group bluetooth net_bt_admin system
+    group bluetooth net_bt_admin diag radio
     disabled
     oneshot
 
@@ -566,6 +568,10 @@ service rmt_storage /system/bin/rmt_storage
     class core
     user root
     group system wakelock
+
+on property:vold.decrypt=trigger_restart_framework
+    start config_bt_addr
+    start wcnss-service
 
 on property:persist.sys.qc.sub.rdump.on=*
    write /sys/module/subsystem_restart/parameters/enable_ramdumps ${persist.sys.qc.sub.rdump.on}
