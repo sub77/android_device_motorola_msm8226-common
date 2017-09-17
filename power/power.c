@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 The CyanogenMod Project
+ * Copyright (C) 2014 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,36 +13,76 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/socket.h>
+#include <sys/un.h>
+#include <fcntl.h>
+#include <dlfcn.h>
+#include <cutils/uevent.h>
+#include <errno.h>
+#include <sys/poll.h>
+#include <pthread.h>
+#include <linux/netlink.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
 #define LOG_TAG "PowerHAL"
+#include <utils/Log.h>
 
 #include <hardware/hardware.h>
 #include <hardware/power.h>
 
-#include <errno.h>
-#include <fcntl.h>
-#include <string.h>
+#define STATE_ON "state=1"
+#define STATE_OFF "state=0"
+#define STATE_HDR_ON "state=2"
+#define STATE_HDR_OFF "state=3"
 
-#include <utils/Log.h>
+#define MAX_LENGTH         50
 
-#include "power.h"
+#define debug 0
 
-#define CPUFREQ_PATH "/sys/devices/system/cpu/cpu0/cpufreq/"
-#define INTERACTIVE_PATH "/sys/devices/system/cpu/cpufreq/interactive/"
+#define UEVENT_MSG_LEN 1024
+#define TOTAL_CPUS 4
+#define RETRY_TIME_CHANGING_FREQ 20
+#define SLEEP_USEC_BETWN_RETRY 200
+#define LOW_POWER_MAX_FREQ "729600"
+#define LOW_POWER_MIN_FREQ "300000"
+#define NORMAL_MAX_FREQ "1190400"
+#define UEVENT_STRING "online@/devices/system/cpu/"
 
-static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
-static int boostpulse_fd = -1;
+static int client_sockfd;
+static struct sockaddr_un client_addr;
+static int last_state = -1;
 
-static int current_power_profile = -1;
-static int requested_power_profile = -1;
+static struct pollfd pfd;
+static char *cpu_path_min[] = {
+    "/sys/devices/system/cpu/cpu0/cpufreq/scaling_min_freq",
+    "/sys/devices/system/cpu/cpu1/cpufreq/scaling_min_freq",
+    "/sys/devices/system/cpu/cpu2/cpufreq/scaling_min_freq",
+    "/sys/devices/system/cpu/cpu3/cpufreq/scaling_min_freq",
+};
+static char *cpu_path_max[] = {
+    "/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq",
+    "/sys/devices/system/cpu/cpu1/cpufreq/scaling_max_freq",
+    "/sys/devices/system/cpu/cpu2/cpufreq/scaling_max_freq",
+    "/sys/devices/system/cpu/cpu3/cpufreq/scaling_max_freq",
+};
+static bool freq_set[TOTAL_CPUS];
+static bool low_power_mode = false;
+static pthread_mutex_t low_power_mode_lock = PTHREAD_MUTEX_INITIALIZER;
 
-static int sysfs_write_str(char *path, char *s)
+bool display_boost = false;
+
+int sysfs_write(char *path, char *s)
 {
     char buf[80];
     int len;
     int ret = 0;
-    int fd;
+    int fd = open(path, O_WRONLY);
 
-    fd = open(path, O_WRONLY);
     if (fd < 0) {
         strerror_r(errno, buf, sizeof(buf));
         ALOGE("Error opening %s: %s\n", path, buf);
@@ -53,6 +93,7 @@ static int sysfs_write_str(char *path, char *s)
     if (len < 0) {
         strerror_r(errno, buf, sizeof(buf));
         ALOGE("Error writing to %s: %s\n", path, buf);
+
         ret = -1;
     }
 
@@ -61,148 +102,135 @@ static int sysfs_write_str(char *path, char *s)
     return ret;
 }
 
-static int sysfs_write_int(char *path, int value)
+void set_feature(__attribute__((unused))struct power_module *module, feature_t feature, int state)
 {
-    char buf[80];
-    snprintf(buf, 80, "%d", value);
-    return sysfs_write_str(path, buf);
+#ifdef TAP_TO_WAKE_NODE
+    if (feature == POWER_FEATURE_DOUBLE_TAP_TO_WAKE) {
+            ALOGI("Double tap to wake is %s.", state ? "enabled" : "disabled");
+            sysfs_write(TAP_TO_WAKE_NODE, state ? "1" : "0");
+        return;
+    }
+#endif
 }
 
-static int is_profile_valid(int profile)
+static void power_set_interactive(__attribute__((unused)) struct power_module *module, int on)
 {
-    return profile >= 0 && profile < PROFILE_MAX;
+    if (last_state == -1) {
+        last_state = on;
+    } else {
+        if (last_state == on)
+            return;
+        else
+            last_state = on;
+    }
+
+    ALOGV("%s %s", __func__, (on ? "ON" : "OFF"));
+#if (debug)
+	ALOGE("%s TODO", __func__);
+#endif
+
+}
+
+static void process_video_encode_hint(void *metadata)
+{
+#if (debug)
+	ALOGE("%s TODO", __func__);
+#endif
+}
+
+static void power_hint( __attribute__((unused)) struct power_module *module,
+                      power_hint_t hint, __attribute__((unused)) void *data)
+{
+    int cpu, ret;
+
+    switch (hint) {
+        case POWER_HINT_INTERACTION:
+#if (debug)
+            ALOGV("POWER_HINT_INTERACTION");
+			ALOGE("%s TODO POWER_HINT_INTERACTION ", __func__);
+#endif
+            break;
+        case POWER_HINT_VIDEO_ENCODE:
+            process_video_encode_hint(data);
+            break;
+
+        case POWER_HINT_LOW_POWER:
+             pthread_mutex_lock(&low_power_mode_lock);
+             if (data) {
+                 low_power_mode = true;
+                 for (cpu = 0; cpu < TOTAL_CPUS; cpu++) {
+                     sysfs_write(cpu_path_min[cpu], LOW_POWER_MIN_FREQ);
+                     ret = sysfs_write(cpu_path_max[cpu], LOW_POWER_MAX_FREQ);
+                     if (!ret) {
+                         freq_set[cpu] = true;
+                     }
+                 }
+                 // reduces the refresh rate
+                 system("service call SurfaceFlinger 1016");
+             } else {
+                 low_power_mode = false;
+                 for (cpu = 0; cpu < TOTAL_CPUS; cpu++) {
+                     ret = sysfs_write(cpu_path_max[cpu], NORMAL_MAX_FREQ);
+                     if (!ret) {
+                         freq_set[cpu] = false;
+                     }
+                 }
+                 // restores the refresh rate
+                 system("service call SurfaceFlinger 1017");
+             }
+             pthread_mutex_unlock(&low_power_mode_lock);
+             break;
+        case POWER_HINT_VSYNC:
+#if (debug)
+             ALOGE("%s TODO: POWER_HINT_VSYNC", __func__);
+#endif
+            break;
+        case POWER_HINT_DISABLE_TOUCH:
+#if (debug)
+             ALOGE("%s TODO: POWER_HINT_DISABLE_TOUCH", __func__);
+#endif
+             break;
+        case POWER_HINT_LAUNCH:
+#if (debug)
+             ALOGE("%s TODO: POWER_HINT_LAUNCH", __func__);
+#endif
+             break;
+        default:
+#if (debug)
+			 ALOGE("%s TODO: hint id: %i", __func__, hint);
+#endif
+             break;
+    }
 }
 
 static void power_init(__attribute__((unused)) struct power_module *module)
 {
     ALOGI("%s", __func__);
-}
 
-static int boostpulse_open()
-{
-    pthread_mutex_lock(&lock);
-    if (boostpulse_fd < 0) {
-        boostpulse_fd = open(INTERACTIVE_PATH "boostpulse", O_WRONLY);
-    }
-    pthread_mutex_unlock(&lock);
+    int fd;
+    char buf[10] = {0};
 
-    return boostpulse_fd;
-}
-
-static void power_set_interactive(__attribute__((unused)) struct power_module *module, int on)
-{
-    if (!is_profile_valid(current_power_profile)) {
-        ALOGD("%s: no power profile selected yet", __func__);
-        return;
-    }
-
-    if (on) {
-        sysfs_write_int(INTERACTIVE_PATH "hispeed_freq",
-                        profiles[current_power_profile].hispeed_freq);
-        sysfs_write_int(INTERACTIVE_PATH "go_hispeed_load",
-                        profiles[current_power_profile].go_hispeed_load);
-        sysfs_write_str(INTERACTIVE_PATH "target_loads",
-                        profiles[current_power_profile].target_loads);
-        sysfs_write_int(CPUFREQ_PATH "scaling_min_freq",
-                        profiles[current_power_profile].scaling_min_freq);
-    } else {
-        sysfs_write_int(INTERACTIVE_PATH "hispeed_freq",
-                        profiles[current_power_profile].hispeed_freq_off);
-        sysfs_write_int(INTERACTIVE_PATH "go_hispeed_load",
-                        profiles[current_power_profile].go_hispeed_load_off);
-        sysfs_write_str(INTERACTIVE_PATH "target_loads",
-                        profiles[current_power_profile].target_loads_off);
-        sysfs_write_int(CPUFREQ_PATH "scaling_min_freq",
-                        profiles[current_power_profile].scaling_min_freq_off);
-    }
-}
-
-static void set_power_profile(int profile)
-{
-    if (!is_profile_valid(profile)) {
-        ALOGE("%s: unknown profile: %d", __func__, profile);
-        return;
-    }
-
-    if (profile == current_power_profile)
-        return;
-
-    ALOGD("%s: setting profile %d", __func__, profile);
-
-    sysfs_write_int(INTERACTIVE_PATH "boost",
-                    profiles[profile].boost);
-    sysfs_write_int(INTERACTIVE_PATH "boostpulse_duration",
-                    profiles[profile].boostpulse_duration);
-    sysfs_write_int(INTERACTIVE_PATH "go_hispeed_load",
-                    profiles[profile].go_hispeed_load);
-    sysfs_write_int(INTERACTIVE_PATH "hispeed_freq",
-                    profiles[profile].hispeed_freq);
-    sysfs_write_int(INTERACTIVE_PATH "io_is_busy",
-                    profiles[profile].io_is_busy);
-    sysfs_write_int(INTERACTIVE_PATH "min_sample_time",
-                    profiles[profile].min_sample_time);
-    sysfs_write_int(INTERACTIVE_PATH "sampling_down_factor",
-                    profiles[profile].sampling_down_factor);
-    sysfs_write_str(INTERACTIVE_PATH "target_loads",
-                    profiles[profile].target_loads);
-    sysfs_write_int(CPUFREQ_PATH "scaling_max_freq",
-                    profiles[profile].scaling_max_freq);
-    sysfs_write_int(CPUFREQ_PATH "scaling_min_freq",
-                    profiles[profile].scaling_min_freq);
-
-    current_power_profile = profile;
-}
-
-static void power_hint(__attribute__((unused)) struct power_module *module,
-                       power_hint_t hint, void *data)
-{
-    switch (hint) {
-    case POWER_HINT_INTERACTION:
-        if (!is_profile_valid(current_power_profile)) {
-            ALOGD("%s: no power profile selected yet", __func__);
-            return;
-        }
-
-        if (!profiles[current_power_profile].boostpulse_duration)
-            return;
-
-        if (boostpulse_open() >= 0) {
-            int len = write(boostpulse_fd, "1", 2);
-            if (len < 0) {
-                ALOGE("Error writing to boostpulse: %s\n", strerror(errno));
-
-                pthread_mutex_lock(&lock);
-                close(boostpulse_fd);
-                boostpulse_fd = -1;
-                pthread_mutex_unlock(&lock);
+    fd = open("/sys/devices/soc0/soc_id", O_RDONLY);
+    if (fd >= 0) {
+        if (read(fd, buf, sizeof(buf) - 1) == -1) {
+            ALOGW("Unable to read soc_id");
+        } else {
+            int soc_id = atoi(buf);
+            if (soc_id == 194 || (soc_id >= 208 && soc_id <= 218) || soc_id == 178) {
+                display_boost = true;
+				ALOGI("%s: Enabling display boost", __func__);
+            } else {
+                ALOGI("%s: Soc %d not in list, disabling display boost", __func__, soc_id);
             }
         }
-        break;
-    case POWER_HINT_SET_PROFILE:
-        pthread_mutex_lock(&lock);
-        set_power_profile(*(int32_t *)data);
-        pthread_mutex_unlock(&lock);
-        break;
-    case POWER_HINT_LOW_POWER:
-        /* This hint is handled by the framework */
-        break;
-    default:
-        break;
+        close(fd);
     }
 }
+
 
 static struct hw_module_methods_t power_module_methods = {
     .open = NULL,
 };
-
-static int get_feature(__attribute__((unused)) struct power_module *module,
-                       feature_t feature)
-{
-    if (feature == POWER_FEATURE_SUPPORTED_PROFILES) {
-        return PROFILE_MAX;
-    }
-    return -1;
-}
 
 struct power_module HAL_MODULE_INFO_SYM = {
     .common = {
@@ -210,13 +238,14 @@ struct power_module HAL_MODULE_INFO_SYM = {
         .module_api_version = POWER_MODULE_API_VERSION_0_2,
         .hal_api_version = HARDWARE_HAL_API_VERSION,
         .id = POWER_HARDWARE_MODULE_ID,
-        .name = "msm8226 Power HAL",
-        .author = "The CyanogenMod Project",
+        .name = "Sony 8974 Power HAL",
+        .author = "The Android Open Source Project",
         .methods = &power_module_methods,
     },
 
     .init = power_init,
     .setInteractive = power_set_interactive,
     .powerHint = power_hint,
-    .getFeature = get_feature
+    .setFeature = set_feature,
 };
+

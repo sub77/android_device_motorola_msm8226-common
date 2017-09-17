@@ -103,6 +103,9 @@ MALLOC_SVELTE := true
 # Partitions
 BOARD_FLASH_BLOCK_SIZE := 131072
 
+# Power HAL
+TARGET_POWERHAL_VARIANT := qcom
+
 # Properties
 TARGET_SYSTEM_PROP += $(VENDOR_PATH)/system.prop
 
