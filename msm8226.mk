@@ -100,7 +100,7 @@ PRODUCT_PACKAGES += \
     libshims_camera \
     libshim_qcopt \
     libshims_sensorlistener \
-    Snap
+    Camera2
 
 # DRM
 PRODUCT_PACKAGES += \
