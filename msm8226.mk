@@ -116,7 +116,8 @@ PRODUCT_PACKAGES += \
     copybit.msm8226 \
     gralloc.msm8226 \
     hwcomposer.msm8226 \
-    memtrack.msm8226
+    memtrack.msm8226 \
+    libboringssl-compat
 
 # Ebtables
 PRODUCT_PACKAGES += \
