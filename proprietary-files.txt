@@ -29,6 +29,7 @@ vendor/lib/libbtnv.so
 # vendor/lib/libmmjpeg.so - from shamu
 # vendor/lib/libmmcamera_faceproc.so - from shamu
 bin/mm-qcamera-daemon:vendor/bin/mm-qcamera-daemon
+lib/libboringssl-compat.so|77127181cff8ae0bb79ee2728bef1bb27ff6e6b9
 lib/libmot_sensorlistener.so
 lib/libmmcamera_ar0543.so
 lib/libmmjpeg_interface.so
