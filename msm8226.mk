@@ -101,7 +101,15 @@ PRODUCT_PACKAGES += \
     libshims_camera \
     libshim_qcopt \
     libshims_sensorlistener \
-    Camera2
+    SnapdragonCamera
+
+# Camera config for HAL1 hacks
+PRODUCT_PROPERTY_OVERRIDES += \
+    camera2.portability.force_api=1
+
+PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
+    media.stagefright.legacyencoder=true \
+    media.stagefright.less-secure=true
 
 # DRM
 PRODUCT_PACKAGES += \
