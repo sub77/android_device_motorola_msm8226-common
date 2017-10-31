@@ -94,14 +94,14 @@ PRODUCT_PACKAGES += \
 
 # Camera
 PRODUCT_PACKAGES += \
-    android.hardware.camera.provider@2.4-impl-legacy \
-    camera.device@1.0-impl-legacy \
+    android.hardware.camera.provider@2.4-impl \
+    camera.device@1.0-impl \
     camera.msm8226 \
     libxml2 \
     libshims_camera \
     libshim_qcopt \
     libshims_sensorlistener \
-    SnapdragonCamera
+    SnapdragonCamera2
 
 # Camera config for HAL1 hacks
 PRODUCT_PROPERTY_OVERRIDES += \
