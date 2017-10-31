@@ -134,9 +134,9 @@ PRODUCT_PACKAGES += \
     libebtc
 
 # FM
-#PRODUCT_PACKAGES += \
-#    FMRadio \
-#    libfmjni
+PRODUCT_PACKAGES += \
+    FMRadio \
+    libfmjni
 
 # GNSS HAL
 PRODUCT_PACKAGES += \
