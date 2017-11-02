@@ -228,8 +228,8 @@ PRODUCT_PACKAGES += \
 
 # /system FS resize
 PRODUCT_PACKAGES += \
-    e2fsck_static \
-    resize2fs_static
+    e2fsck \
+    resize2fs
 
 # USB
 PRODUCT_PACKAGES += \

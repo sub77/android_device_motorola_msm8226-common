@@ -13,44 +13,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import common
 import re
-
-def FullOTA_Assertions(info):
-  AddBootloaderAssertion(info, info.input_zip)
-
-
-def IncrementalOTA_Assertions(info):
-  AddBootloaderAssertion(info, info.target_zip)
-
+import os
 
 def FullOTA_PostValidate(info):
   ResizeSystem(info)
 
-
-def AddBootloaderAssertion(info, input_zip):
-  android_info = input_zip.read("OTA/android-info.txt")
-  m = re.search(r"require\s+version-bootloader\s*=\s*(\S+)", android_info)
-  if m:
-    bootloaders = m.group(1).split("|")
-    if "*" not in bootloaders:
-      info.script.AssertSomeBootloader(*bootloaders)
-    info.metadata["pre-bootloader"] = m.group(1)
-
-
 def ResizeSystem(info):
-  if info.metadata["ota-type"] == "BLOCK":
-    fstab = info.info_dict.get("fstab", None)
-    system_block = fstab["/system"].device
-    e2fsck = "/tmp/install/bin/e2fsck_static"
-    resize2fs = "/tmp/install/bin/resize2fs_static"
-    resize_error = "Error: could not resize /system"
-
-    # We copied verbatim an image that we already checked with e2fsck,
-    # so this shouldn't be required.
-    info.script.AppendExtra('run_program("%s", "-fy", "%s");'
-                            % (e2fsck, system_block))
-    info.script.AppendExtra('run_program("%s", "%s") == 0 || ui_print("%s");'
-                            % (resize2fs, system_block, resize_error))
-    # However, there might be errors caused by resize2fs
-    info.script.AppendExtra('run_program("%s", "-fy", "%s");'
-                            % (e2fsck, system_block))
+  info.script.AppendExtra('run_program("/sbin/e2fsck", "-fy", "/dev/block/platform/msm_sdcc.1/by-name/system");');
+  info.script.AppendExtra('run_program("/sbin/resize2fs", "/dev/block/platform/msm_sdcc.1/by-name/system");');
+  info.script.AppendExtra('run_program("/sbin/e2fsck", "-fy", "/dev/block/platform/msm_sdcc.1/by-name/system");');
