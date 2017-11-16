@@ -96,6 +96,9 @@ BOARD_HAVE_FM_RADIO := true
 BOARD_HAVE_QCOM_FM := true
 TARGET_QCOM_NO_FM_FIRMWARE := true
 
+# Filesystem
+TARGET_FS_CONFIG_GEN := $(VENDOR_PATH)/config.fs
+
 # Fonts
 EXTENDED_FONT_FOOTPRINT := true
 
