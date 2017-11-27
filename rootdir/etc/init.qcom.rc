@@ -501,7 +501,7 @@ service ril-daemon /vendor/bin/hw/rild
     socket cutback stream 660 media radio
     socket wpa_wlan0 dgram 660 wifi wifi
     user root
-    group radio cache inet misc audio log qcom_diag net_raw diag wifi
+    group radio cache inet misc audio log oem_2950 net_raw diag wifi
 
 service ril-daemon1 /vendor/bin/hw/rild -c 2
     class main
@@ -509,7 +509,7 @@ service ril-daemon1 /vendor/bin/hw/rild -c 2
     socket rild-debug2 stream 660 radio system
     user root
     disabled
-    group radio cache inet misc audio sdcard_r sdcard_rw diag qcom_diag log
+    group radio cache inet misc audio sdcard_r sdcard_rw diag oem_2950 log
 
 service ril-daemon2 /vendor/bin/hw/rild -c 3
     class main
@@ -517,7 +517,7 @@ service ril-daemon2 /vendor/bin/hw/rild -c 3
     socket rild-debug3 stream 660 radio system
     user root
     disabled
-group radio cache inet misc audio sdcard_r sdcard_rw diag qcom_diag log
+group radio cache inet misc audio sdcard_r sdcard_rw diag oem_2950 log
 
 service rild1-wrapper /system/bin/sh /system/etc/init.qcom.ril.sh
     class late_start
