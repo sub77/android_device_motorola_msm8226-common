@@ -26,11 +26,6 @@ TARGET_SPECIFIC_HEADER_PATH := $(VENDOR_PATH)/include
 TARGET_BOARD_PLATFORM := msm8226
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno305
 
-# AIDs and CAPS
-TARGET_FS_CONFIG_GEN := \
-    $(VENDOR_PATH)/fs_config/mot_aids.txt \
-    $(VENDOR_PATH)/fs_config/file_caps.txt
-
 # Architecture
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
@@ -98,14 +93,17 @@ NUM_FRAMEBUFFER_SURFACE_BUFFERS := 3
 TARGET_USES_C2D_COMPOSITION := true
 TARGET_USES_ION := true
 
+# Filesystem
+TARGET_FS_CONFIG_GEN := \
+    $(VENDOR_PATH)/fs_config/mot_aids.txt \
+    $(VENDOR_PATH)/fs_config/file_caps.txt \
+    $(VENDOR_PATH)/fs_config/config.fs
+    
 # FM Radio
 BOARD_DISABLE_FMRADIO_LIBJNI := true
 BOARD_HAVE_FM_RADIO := true
 BOARD_HAVE_QCOM_FM := true
 TARGET_QCOM_NO_FM_FIRMWARE := true
-
-# Filesystem
-TARGET_FS_CONFIG_GEN := $(VENDOR_PATH)/config.fs
 
 # Fonts
 EXTENDED_FONT_FOOTPRINT := true
