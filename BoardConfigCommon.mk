@@ -26,11 +26,6 @@ TARGET_SPECIFIC_HEADER_PATH := $(VENDOR_PATH)/include
 TARGET_BOARD_PLATFORM := msm8226
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno305
 
-# AIDs and CAPS
-TARGET_FS_CONFIG_GEN := \
-    $(VENDOR_PATH)/fs_config/mot_aids.txt \
-    $(VENDOR_PATH)/fs_config/file_caps.txt
-
 # Architecture
 TARGET_ARCH := arm
 TARGET_ARCH_VARIANT := armv7-a-neon
