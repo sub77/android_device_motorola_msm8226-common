@@ -100,7 +100,7 @@ int power_hint_override(__attribute__((unused)) struct power_module *module,
         return HINT_HANDLED;
     }
 
-    if (hint == POWER_HINT_CPU_BOOST) {
+    if (hint == POWER_HINT_DISABLE_TOUCH) {
         int duration = *(int32_t *)data / 1000;
         int resources[] = { CPUS_ONLINE_MIN_2, 0x20F, 0x30F};
 
