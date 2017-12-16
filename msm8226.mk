@@ -112,6 +112,13 @@ PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
     media.stagefright.legacyencoder=true \
     media.stagefright.less-secure=true
 
+# CRDA
+PRODUCT_PACKAGES += \
+    crda \
+    linville.key.pub.pem \
+    regdbdump \
+    regulatory.bin
+
 # DRM
 PRODUCT_PACKAGES += \
     android.hardware.drm@1.0-impl
