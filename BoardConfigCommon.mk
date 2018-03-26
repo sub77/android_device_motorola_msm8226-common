@@ -127,6 +127,12 @@ JAVA_SOURCE_OVERLAYS := org.lineageos.hardware|$(VENDOR_PATH)/lineagehw|**/*.jav
 # Memory
 MALLOC_SVELTE := true
 
+# Optimize
+PRODUCT_SYSTEM_SERVER_COMPILER_FILTER := speed-profile
+PRODUCT_ALWAYS_PREOPT_EXTRACTED_APK := true
+PRODUCT_USE_PROFILE_FOR_BOOT_IMAGE := true
+PRODUCT_DEX_PREOPT_BOOT_IMAGE_PROFILE_LOCATION := frameworks/base/config/boot-image-profile.txt
+
 # Partitions
 BOARD_FLASH_BLOCK_SIZE := 131072
 
