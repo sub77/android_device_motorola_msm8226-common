@@ -115,7 +115,7 @@ PRODUCT_PACKAGES += \
     libshims_camera \
     libshim_qcopt \
     libshims_sensorlistener \
-    Snap
+    Camera2
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilts/libskia.so:system/lib/libskia.so
@@ -140,8 +140,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
     dalvik.vm.heapmaxfree=8m
 
 # DeviceSettings
-PRODUCT_PACKAGES += \
-    DeviceSettings
+#PRODUCT_PACKAGES += \
+#    DeviceSettings
 
 # DRM
 PRODUCT_PACKAGES += \
