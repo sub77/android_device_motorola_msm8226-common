@@ -1,0 +1,50 @@
+type mpdecision, domain, mlstrustedsubject;
+type mpdecision_exec, exec_type, file_type;
+type mpdecision_data_file, file_type, core_data_file_type, data_file_type;
+
+init_daemon_domain(mpdecision)
+
+allow mpdecision {
+    sysfs_mpdecision
+    sysfs_devices_system_cpu
+    sysfs_cpu_online
+}:file rw_file_perms;
+
+#Allow mpdecision set cpu affinity
+allow mpdecision kernel:process setsched;
+
+allow mpdecision device_latency:chr_file w_file_perms;
+
+r_dir_file(mpdecision, sysfs_rqstats)
+allow mpdecision sysfs_rqstats:file w_file_perms;
+r_dir_file(mpdecision, sysfs_thermal)
+allow mpdecision sysfs_thermal:file write;
+
+#policies for mpctl
+#mpctl socket
+allow mpdecision self:capability { net_admin chown fsetid sys_nice };
+allow mpdecision mpctl_socket:dir rw_dir_perms;
+allow mpdecision mpctl_socket:sock_file create_file_perms;
+
+allow mpdecision sysfs:file w_file_perms;
+
+#allow poll of system_server status
+r_dir_file(mpdecision, system_server)
+
+#mpdecision set properties
+set_prop(mpdecision, mpdecision_prop)
+
+#From Legacy
+allow mpdecision cgroup:file r_file_perms;
+allow mpdecision sysfs_kgsl:file rw_file_perms;
+
+get_prop(mpdecision, freq_prop)
+
+r_dir_file(mpdecision, hal_power_default)
+
+#device
+allow mpdecision socket_device:dir w_dir_perms;
+allow mpdecision system_data_file:dir w_dir_perms;
+
+type_transition mpdecision socket_device:sock_file mpctl_socket;
+type_transition mpdecision system_data_file:file mpctl_data_file;
