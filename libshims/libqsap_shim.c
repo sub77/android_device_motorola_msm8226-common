@@ -72,3 +72,4 @@ s32 wifi_qsap_set_tx_power(s32 tx_power)
 
     return ret;
 }
+

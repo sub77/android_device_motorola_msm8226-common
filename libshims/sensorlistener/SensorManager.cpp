@@ -24,8 +24,8 @@
 #include <utils/Singleton.h>
 
 #include <binder/IBinder.h>
-#include <binder/IPermissionController.h>
 #include <binder/IServiceManager.h>
+#include <binder/IPermissionController.h>
 
 #include "gui/ISensorServer.h"
 #include "gui/ISensorEventConnection.h"
