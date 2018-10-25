@@ -41,8 +41,8 @@ def ResizeSystem(info):
   if info.metadata["ota-type"] == "BLOCK":
     fstab = info.info_dict.get("fstab", None)
     system_block = fstab["/system"].device
-    e2fsck = "/tmp/install/bin/e2fsck_static"
-    resize2fs = "/tmp/install/bin/resize2fs_static"
+    e2fsck = "/sbin/e2fsck"
+    resize2fs = "/sbin/resize2fs"
     resize_error = "Error: could not resize /system"
 
     # We copied verbatim an image that we already checked with e2fsck,

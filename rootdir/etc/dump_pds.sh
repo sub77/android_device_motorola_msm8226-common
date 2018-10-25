@@ -1,4 +1,4 @@
-#!/system/bin/sh
+#!/system/vendor/bin/sh
 
 DUMP=/cache/pds-dump.img
 

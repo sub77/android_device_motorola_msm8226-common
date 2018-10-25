@@ -1,5 +1,5 @@
 type dump_pds, domain;
-type dump_pds_exec, exec_type, file_type;
+type dump_pds_exec, exec_type, file_type, vendor_file_type;
 init_daemon_domain(dump_pds)
 
 allow dump_pds cache_file:dir rw_dir_perms;

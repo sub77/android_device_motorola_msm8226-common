@@ -48,6 +48,7 @@ BOARD_KERNEL_CMDLINE := androidboot.bootdevice=msm_sdcc.1 androidboot.hardware=q
 BOARD_KERNEL_IMAGE_NAME := zImage
 BOARD_KERNEL_PAGESIZE := 2048
 BOARD_KERNEL_SEPARATED_DT := true
+TARGET_CUSTOM_DTBTOOL := dtbTool_custom
 BOARD_MKBOOTIMG_ARGS := --ramdisk_offset 0x01000000 --tags_offset 0x00000100
 LZMA_RAMDISK_TARGETS := recovery
 TARGET_KERNEL_SOURCE := kernel/motorola/msm8226
@@ -81,7 +82,7 @@ TARGET_NEEDS_LEGACY_CAMERA_HAL1_DYN_NATIVE_HANDLE := true
 
 TARGET_PROCESS_SDK_VERSION_OVERRIDE := \
     /system/bin/mediaserver=23 \
-	/system/vendor/bin/mm-qcamera-daemon=23
+    /system/vendor/bin/mm-qcamera-daemon=23
 
 # Charger
 BOARD_CHARGING_MODE_BOOTING_LPM := /sys/mmi_lpm/lpm_mode
@@ -102,9 +103,13 @@ TARGET_QCOM_NO_FM_FIRMWARE := true
 # Exclude serif fonts for saving system.img size.
 EXCLUDE_SERIF_FONTS := true
 
-# Filesystem
+# AIDs
 TARGET_ALLOW_LEGACY_AIDS := true
-TARGET_FS_CONFIG_GEN := $(VENDOR_PATH)/config.fs
+TARGET_FS_CONFIG_GEN := \
+    $(VENDOR_PATH)/fs_config/mot_aids.txt \
+    $(VENDOR_PATH)/fs_config/qcom_aids.txt
+
+# Filesystem
 TARGET_USES_MKE2FS := true
 
 # Fonts
@@ -127,9 +132,10 @@ MALLOC_SVELTE := true
 BOARD_FLASH_BLOCK_SIZE := 131072
 
 # Power
-TARGET_HAS_NO_POWER_STATS := true
-TARGET_HAS_NO_WLAN_STATS := true
-TARGET_USES_INTERACTION_BOOST := true
+#TARGET_HAS_NO_POWER_STATS := true
+#TARGET_HAS_NO_WLAN_STATS := true
+TARGET_PROVIDES_POWERHAL := true
+#TARGET_USES_INTERACTION_BOOST := true
 
 # Properties
 TARGET_SYSTEM_PROP += $(VENDOR_PATH)/system.prop
@@ -164,17 +170,17 @@ endif
 WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := true
 
 # SELinux
-#include device/qcom/sepolicy-legacy/sepolicy.mk
-
-#BOARD_SEPOLICY_DIRS += $(VENDOR_PATH)/sepolicy
+include device/qcom/sepolicy/sepolicy.mk
+BOARD_SEPOLICY_DIRS += $(VENDOR_PATH)/sepolicy
+include vendor/omni/sepolicy/sepolicy.mk
 
 # Shims
 TARGET_LD_SHIM_LIBS := \
-    /system/vendor/bin/thermal-engine|libshims_thermal.so \
-    /system/vendor/bin/mpdecision|libshims_atomic.so \
+    /vendor/bin/thermal-engine|libshims_thermal.so \
+    /vendor/bin/mpdecision|libshims_atomic.so \
     /system/lib/hw/camera.vendor.msm8226.so|libshims_camera.so \
     /system/lib/libmot_sensorlistener.so|libshims_sensorlistener.so \
-    /system/vendor/lib/libqc-opt.so|libshim_qcopt.so \
+    /vendor/lib/libqc-opt.so|libshim_qcopt.so \
     /system/lib/libmdmcutback.so|libqsap_shim.so \
     /system/lib/libskia.so|libshim_skia.so
 

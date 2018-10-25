@@ -25,7 +25,8 @@
 # ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-import init.qcom.usb.rc
+import init.omni.rc 
+import /system/vendor/etc/init/hw/init.qcom.usb.rc
 import init.target.rc
 
 on early-init
@@ -62,7 +63,7 @@ on fs
     wait /dev/block/platform/${ro.boot.bootdevice}
     symlink /dev/block/platform/${ro.boot.bootdevice} /dev/block/bootdevice
 
-    mount_all fstab.qcom --early
+    mount_all /system/vendor/etc/fstab.qcom --early
     write /sys/kernel/boot_adsp/boot 1
 
     # Create a dump of PDS and mount it
@@ -82,7 +83,7 @@ on late-fs
     start bootanim
     start vendor.gralloc-2-0
 
-    mount_all fstab.qcom --late
+    mount_all /system/vendor/etc/fstab.qcom --late
 
 on post-fs
     # Allow writing to the kernel trace log.
@@ -497,7 +498,7 @@ service location_mq /vendor/bin/location-mq
     group gps
     disabled
 
-service mmi-boot-sh /system/bin/sh /init.mmi.boot.sh
+service mmi-boot-sh /system/vendor/bin/sh /system/vendor/bin/init.mmi.boot.sh
     class core
     user root
     oneshot
@@ -515,13 +516,13 @@ service ril-daemon1 /vendor/bin/hw/rild -c 2
     capabilities BLOCK_SUSPEND NET_ADMIN NET_RAW
     disabled
 
-service rild1-wrapper /system/bin/sh /system/etc/init.qcom.ril.sh
+service rild1-wrapper /system/vendor/bin/sh /system/vendor/bin/init.qcom.ril.sh
     class late_start
     user root
     group root
     oneshot
 
-service mmi-touch-sh /system/bin/sh /init.mmi.touch.sh synaptics aps
+service mmi-touch-sh /system/vendor/bin/sh /system/vendor/bin/init.mmi.touch.sh synaptics aps
     class late_start
     user root
     oneshot

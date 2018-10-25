@@ -203,7 +203,6 @@
         <item>4</item>
         <item>5</item>
         <item>7</item>
-        <item>9</item>
     </integer-array>
 
     <!-- Boolean indicating whether the wifi chipset has background scan support -->
@@ -261,7 +260,7 @@
 
     <!-- If true, the doze component is not started until after the screen has been
          turned off and the screen off animation has been performed. -->
-    <bool name="config_dozeAfterScreenOffByDefault">true</bool>
+    <bool name="config_dozeAfterScreenOff">true</bool>
 
     <!-- Power Management: Specifies whether to decouple the interactive state of the
          device from the display on/off state.
@@ -350,10 +349,6 @@
              -SourcePortDestPort-SourcePortDestPort-OMADM PDU
          If false, not supported. -->
     <bool name="config_duplicate_port_omadm_wappush">true</bool>
-	
-    <!-- Boolean indicating whether the HWC setColorTransform function can be performed efficiently
-         in hardware. -->
-    <bool name="config_setColorTransformAccelerated">false</bool>
 
     <!-- If EMS is not supported, framework breaks down EMS into single segment SMS
          and adds page info " x/y". This config is used to set which carrier doesn't
@@ -374,32 +369,10 @@
     <!-- Flag indicating if device supports EAP SIM, AKA, AKA' -->
     <bool name="config_eap_sim_based_auth_supported">false</bool>
 
-    <!-- Minimum screen brightness allowed by the power manager. -->
-    <integer name="config_screenBrightnessDim">1</integer>
-
-    <!-- Minimum screen brightness setting allowed by the power manager.
-         The user is forbidden from setting the brightness below this level. -->
-    <integer name="config_screenBrightnessSettingMinimum">1</integer>
-
-    <!-- Enable doze powersaving -->
-    <bool name="config_enableAutoPowerModes">true</bool>
-
-    <!-- Flag indicating whether round icons should be parsed from the application manifest. -->
-    <bool name="config_useRoundIcon">true</bool>
-
-    <!-- Specifies the path that is used by AdaptiveIconDrawable class to crop launcher icons. -->
-    <string name="config_icon_mask" translatable="false">"M50 0C77.6 0 100 22.4 100 50C100 77.6 77.6 100 50 100C22.4 100 0 77.6 0 50C0 22.4 22.4 0 50 0Z"</string>
-
-    <!-- Whether or not swipe up gesture's opt-in setting is available on this device -->
-    <bool name="config_swipe_up_gesture_setting_available">true</bool>
-
-    <!-- Flag indicating whether we should enable smart battery. -->
-    <bool name="config_smart_battery_available">true</bool>
-
-    <!-- Misc -->
-    <bool name="config_buttonTextAllCaps">false</bool>
-    <dimen name="config_dialogCornerRadius">8.0dip</dimen>
-    <dimen name="config_buttonCornerRadius">4.0dip</dimen>
-    <dimen name="config_progressBarCornerRadius">1000.0dip</dimen>
+    <!-- The RadioAccessFamilies supported by the device.
+         Empty is viewed as "all".  Only used on devices which
+         don't support RIL_REQUEST_GET_RADIO_CAPABILITY
+         format is UMTS|LTE|... -->
+    <string translatable="false" name="config_radio_access_family">GSM | WCDMA | CDMA | EVDO</string>
 
 </resources>
