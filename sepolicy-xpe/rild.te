@@ -1,4 +1,4 @@
-allow rild cutback_data_file:dir r_dir_perms;
+#allow rild cutback_data_file:dir r_dir_perms;
 
 allow rild hal_wifi_supplicant_default:unix_dgram_socket { sendto write };
 

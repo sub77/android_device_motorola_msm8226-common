@@ -1,11 +1,22 @@
+# Bluetooth
+/sys/devices/bt_qca6174\.[0-9]+/extldo                                   u:object_r:sysfs_bluetooth_writable:s0
+/sys/devices/bt_qca6174\.[0-9]+/rfkill/rfkill0/state                     u:object_r:sysfs_bluetooth_writable:s0
+/system/vendor/bin/hci_qcomm_init                                        u:object_r:bluetooth_loader_exec:s0
+
 # Binaries
-/(vendor|system/vendor)/bin/dbvc_atvc_property_set                         u:object_r:atvc_exec:s0
-/(vendor|system/vendor)/bin/dump_pds\.sh                                   u:object_r:dump_pds_exec:s0
-/(vendor|system/vendor)/bin/hw/android\.hardware\.power@1\.0-service-qti   u:object_r:hal_power_default_exec:s0
-/(vendor|system/vendor)/bin/hw/android\.hardware\.power@1\.1-service-qti   u:object_r:hal_power_default_exec:s0
+/system/bin/sensord                                                      u:object_r:sensord_exec:s0
+/system/vendor/bin/dbvc_atvc_property_set                                u:object_r:atvc_exec:s0
+/system/vendor/bin/akmd8963                                              u:object_r:akmd8963_exec:s0
+/system/vendor/bin/dump_pds\.sh                                          u:object_r:dump_pds_exec:s0
+/system/vendor/bin/qmi_motext_hook                                       u:object_r:rild_exec:s0
+/system/vendor/bin/thermal-engine                                        u:object_r:thermal-engine_exec:s0
+/system/vendor/bin/hw/android\.hardware\.power@1\.1-service-qti          u:object_r:hal_power_default_exec:s0
+/system/vendor/bin/init\.mmi\.boot\.sh                                   u:object_r:mmi_boot_exec:s0
+/system/vendor/bin/init\.mmi\.touch\.sh                                  u:object_r:mmi_touch_exec:s0
 
 # Camera
-/data/cam_socket([0-9])+                                    u:object_r:camera_socket_file:s0
+/system/vendor/lib/hw/android\.hardware\.camera\.provider@2\.4-impl.so   u:object_r:hal_camera_default_exec:s0
+/data/cam_socket([0-9])+                                                 u:object_r:camera_socket_file:s0
 
 # MPDecision
 #/data/system/default_values                                 u:object_r:mpctl_data_file:s0
@@ -58,8 +69,3 @@
 /sys/devices/f9925000\.i2c/i2c-3/3-0048/temp1_input         u:object_r:sysfs_thermal:s0
 /sys/devices/f9925000\.i2c/i2c-3/3-0048/temp1_max           u:object_r:sysfs_thermal:s0
 /sys/devices/f9925000\.i2c/i2c-3/3-0048/temp1_max_hyst      u:object_r:sysfs_thermal:s0
-
-#Bluetooth
-/sys/devices/bt_qca6174\.[0-9]+/extldo                      u:object_r:sysfs_bluetooth_writable:s0
-/sys/devices/bt_qca6174\.[0-9]+/rfkill/rfkill0/state        u:object_r:sysfs_bluetooth_writable:s0
-/(vendor|system/vendor)/bin/hci_qcomm_init                  u:object_r:bluetooth_loader_exec:s0

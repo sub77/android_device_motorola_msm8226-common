@@ -1,0 +1,4 @@
+type mmi_touch, domain;
+type mmi_touch_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(mmi_touch)
+

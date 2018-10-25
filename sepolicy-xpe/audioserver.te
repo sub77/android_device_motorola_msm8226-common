@@ -1,1 +1,1 @@
-allow audioserver unlabeled:file { read open getattr };
+allow audioserver unlabeled:file  { read open getattr };
