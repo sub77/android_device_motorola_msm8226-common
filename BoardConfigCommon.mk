@@ -175,6 +175,12 @@ WITH_DEXPREOPT_BOOT_IMG_AND_SYSTEM_SERVER_ONLY := true
 include device/qcom/sepolicy/sepolicy.mk
 BOARD_SEPOLICY_DIRS += $(VENDOR_PATH)/sepolicy
 include vendor/omni/sepolicy/sepolicy.mk
+#BOARD_PLAT_PUBLIC_SEPOLICY_DIR += $(VENDOR_PATH)/sepolicy/public
+#BOARD_PLAT_PRIVATE_SEPOLICY_DIR += $(VENDOR_PATH)/sepolicy/private
+
+# Split selinux policy
+#PRODUCT_FULL_TREBLE_OVERRIDE := true
+#SELINUX_IGNORE_NEVERALLOWS := false
 
 # Wifi
 BOARD_HAS_QCOM_WLAN := true
