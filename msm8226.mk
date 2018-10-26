@@ -110,7 +110,7 @@ PRODUCT_PACKAGES += \
     libshims_sensorlistener
 
 PRODUCT_PACKAGES += \
-    SnapdragonCamera2
+    Camera2
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilts/libskia.so:system/lib/libskia.so
@@ -120,15 +120,6 @@ PRODUCT_COPY_FILES += \
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/external_camera_config.xml:system/vendor/etc/external_camera_config.xml
-
-# Camera config for HAL1 hacks
-PRODUCT_PROPERTY_OVERRIDES += \
-    camera2.portability.force_api=1 \
-    camera.disable_treble=true
-
-PRODUCT_DEFAULT_PROPERTY_OVERRIDES += \
-    media.stagefright.legacyencoder=true \
-    media.stagefright.less-secure=true
 
 # CRDA
 PRODUCT_PACKAGES += \
