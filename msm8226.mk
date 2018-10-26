@@ -349,4 +349,4 @@ PRODUCT_PACKAGES += \
 
 # Enable ADB authentication
 PRODUCT_ADB_KEYS := \
-    $(LOCAL_PATH)/configs/adbkey.pub
+    $(LOCAL_PATH)/adbkey/adbkey.pub
