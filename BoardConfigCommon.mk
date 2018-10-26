@@ -107,7 +107,6 @@ TARGET_QCOM_NO_FM_FIRMWARE := true
 EXCLUDE_SERIF_FONTS := true
 
 # AIDs
-TARGET_ALLOW_LEGACY_AIDS := true
 TARGET_FS_CONFIG_GEN := \
     $(VENDOR_PATH)/fs_config/mot_aids.txt \
     $(VENDOR_PATH)/fs_config/qcom_aids.txt
