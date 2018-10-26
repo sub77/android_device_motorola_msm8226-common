@@ -107,8 +107,7 @@ PRODUCT_PACKAGES += \
     libshim_skia \
     libshims_camera \
     libshim_qcopt \
-    libshims_sensorlistener \
-    libshim_canvas
+    libshims_sensorlistener
 
 PRODUCT_PACKAGES += \
     SnapdragonCamera2

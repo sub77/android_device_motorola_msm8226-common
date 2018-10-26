@@ -177,18 +177,6 @@ include device/qcom/sepolicy/sepolicy.mk
 BOARD_SEPOLICY_DIRS += $(VENDOR_PATH)/sepolicy
 include vendor/omni/sepolicy/sepolicy.mk
 
-# Shims
-TARGET_LD_SHIM_LIBS := \
-    /system/vendor/bin/thermal-engine|libshims_thermal.so \
-    /system/vendor/bin/mpdecision|libshims_atomic.so \
-    /system/lib/hw/camera.vendor.msm8226.so|libshims_camera.so \
-    /system/lib/libmot_sensorlistener.so|libshims_sensorlistener.so \
-    /system/vendor/lib/libqc-opt.so|libshim_qcopt.so \
-    /system/vendor/bin/mm-qcamera-daemon|libshim_canvas.so \
-    /system/vendor/bin/mm-qcamera-daemon|libshim_skia.so \
-    /system/lib/libskia.so|libshim_skia.so \
-    /system/lib/libmdmcutback.so|libqsap_shim.so
-
 # Wifi
 BOARD_HAS_QCOM_WLAN := true
 BOARD_HAS_QCOM_WLAN_SDK := true
