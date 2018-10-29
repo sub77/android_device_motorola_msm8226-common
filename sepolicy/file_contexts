@@ -6,13 +6,23 @@
 # Binaries
 /system/bin/qmi_motext_hook                                              u:object_r:rild_exec:s0
 /system/bin/sensord                                                      u:object_r:sensord_exec:s0
+/system/vendor/bin/awk                                                   u:object_r:vendor_toolbox_exec:s0
 /system/vendor/bin/dbvc_atvc_property_set                                u:object_r:atvc_exec:s0
 /system/vendor/bin/akmd8963                                              u:object_r:akmd8963_exec:s0
-/system/vendor/bin/dump_pds\.sh                                          u:object_r:dump_pds_exec:s0
+#/system/vendor/bin/location-mq                                           u:object_r:location-mq_exec:s0
+#/system/vendor/bin/logwrapper                                            u:object_r:logwrapper_exec:s0
+/system/vendor/bin/mpdecision                                            u:object_r:mpdecision_exec:s0
+/system/vendor/bin/qmi_motext_hook                                       u:object_r:rild_exec:s0
+#/system/vendor/bin/radish                                                u:object_r:radish_exec:s0
 /system/vendor/bin/thermal-engine                                        u:object_r:thermal-engine_exec:s0
-/system/vendor/bin/hw/android\.hardware\.power@1\.1-service-qti          u:object_r:hal_power_default_exec:s0
+/system/vendor/bin/vndservice                                            u:object_r:vndservicemanager_exec:s0
+
+/system/vendor/bin/dump_pds\.sh                                          u:object_r:dump_pds_exec:s0
 /system/vendor/bin/init\.mmi\.boot\.sh                                   u:object_r:mmi_boot_exec:s0
 /system/vendor/bin/init\.mmi\.touch\.sh                                  u:object_r:mmi_touch_exec:s0
+/system/vendor/bin/init\.qcom\.ril\.sh                                   u:object_r:qti_init_shell_exec:s0 
+
+/system/vendor/bin/hw/android\.hardware\.power@1\.1-service-qti          u:object_r:hal_power_default_exec:s0
 
 # Camera
 /system/vendor/lib/hw/android\.hardware\.camera\.provider@2\.4-impl.so   u:object_r:hal_camera_default_exec:s0

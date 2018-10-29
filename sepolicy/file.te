@@ -11,8 +11,8 @@ type pds_public_file, file_type;
 type pds_batt_file, file_type;
 
 # Camera
-type camera_socket, data_file_type, core_data_file_type;
-type camera_socket_file, file_type, data_file_type, core_data_file_type;
+#type camera_socket, data_file_type, core_data_file_type;
+#type camera_socket_file, file_type, data_file_type, core_data_file_type;
 
 # Sensors
-type sensors_data_file, file_type, data_file_type, core_data_file_type;
+#type sensors_data_file, file_type, data_file_type, core_data_file_type;

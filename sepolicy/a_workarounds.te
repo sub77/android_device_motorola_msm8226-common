@@ -1,0 +1,108 @@
+#### to move back to common: 
+type camera_socket, file_type, data_file_type;
+type per_mgr_service,             vndservice_manager_type;
+type per_mgr_state_prop, property_type;
+type sensors_data_file, file_type, data_file_type;
+type boot_animation_prop, property_type;
+type rmnet_mux_prop, property_type;
+
+
+type mpdecision_prop, property_type;
+
+### device/qcom/sepolicy/common/mpdecision.te
+type mpdecision, domain, mlstrustedsubject;
+type mpdecision_exec, exec_type, vendor_file_type, file_type;
+
+init_daemon_domain(mpdecision)
+
+allow mpdecision {
+    sysfs_mpdecision
+    sysfs_devices_system_cpu
+    sysfs_cpu_online
+}:file rw_file_perms;
+
+#Allow mpdecision set cpu affinity
+allow mpdecision kernel:process setsched;
+
+#Allow writes to /dev/cpu_dma_latency
+allow mpdecision self: {
+    netlink_kobject_uevent_socket
+    socket
+} create_socket_perms_no_ioctl;
+
+allow mpdecision device_latency:chr_file w_file_perms;
+
+r_dir_file(mpdecision, sysfs_rqstats)
+allow mpdecision sysfs_rqstats:file w_file_perms;
+r_dir_file(mpdecision, sysfs_thermal)
+allow mpdecision sysfs_thermal:file write;
+
+#policies for mpctl
+#mpctl socket
+#allow mpdecision self:capability { net_admin chown dac_override fsetid sys_nice };
+allow mpdecision mpctl_socket:dir rw_dir_perms;
+allow mpdecision mpctl_socket:sock_file create_file_perms;
+
+allow mpdecision sysfs:file w_file_perms;
+
+#default_values file
+allow mpdecision mpctl_data_file:dir rw_dir_perms;
+allow mpdecision mpctl_data_file:file create_file_perms;
+
+#allow poll of system_server status
+r_dir_file(mpdecision, system_server)
+
+#mpdecision set properties
+set_prop(mpdecision, mpdecision_prop)
+
+
+
+###### te_macros: 
+########################################
+# peripheral_manager
+# Allow clients to interact with peripheral
+# manager
+define(`use_per_mgr', `
+vndbinder_use($1);
+binder_call(per_mgr, $1);
+binder_call($1, per_mgr);
+allow $1 per_mgr_service:service_manager find;
+get_prop($1, per_mgr_state_prop);
+')
+
+
+### device/qcom/sepolicy/common/peripheral_manager.te
+# Policy for peripheral_manager
+# per_mgr - peripheral_manager domain
+type per_mgr, domain;
+
+type per_mgr_exec, exec_type, vendor_file_type, file_type;
+init_daemon_domain(per_mgr);
+
+# Needed for binder transactions
+use_per_mgr(per_mgr)
+allow per_mgr per_mgr_service:service_manager { add };
+
+allow per_mgr self:socket create_socket_perms;
+allowxperm per_mgr self:socket ioctl msm_sock_ipc_ioctls;
+
+
+# Needed by ipc_router
+allow per_mgr self:capability net_bind_service;
+
+# Needed to power on the peripheral
+allow per_mgr ssr_device:chr_file r_file_perms;
+
+# Needed by libmdmdetect to figure out the system configuration
+r_dir_file(per_mgr, sysfs_esoc)
+
+# Needed by libmdmdetect to get subsystem info and to check their states
+r_dir_file(per_mgr, sysfs_ssr)
+r_dir_file(per_mgr, firmware_file)
+r_dir_file(per_mgr, sysfs)
+allow per_mgr sysfs_data:file r_file_perms;
+
+# Set the peripheral state property
+set_prop(per_mgr, per_mgr_state_prop);
+
+
