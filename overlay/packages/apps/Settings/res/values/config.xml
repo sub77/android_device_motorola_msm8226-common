@@ -24,8 +24,7 @@
          1 = front
          2 = left side
          3 = right side
-    -->
-    <integer name="config_fingerprintSensorLocation">1</integer>
+    <integer name="config_fingerprintSensorLocation">1</integer>-->
 
     <!-- Device specific doze package -->
     <string name="config_customDozePackage">com.moto.actions/com.moto.actions.DozeSettingsActivity</string>
