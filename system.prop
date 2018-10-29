@@ -43,6 +43,10 @@ ro.bluetooth.dun=true
 ro.bluetooth.hfp.ver=1.6
 ro.qualcomm.bt.hci_transport=smd
 
+# Camera
+camera2.portability.force_api=1
+debug.camcorder.disablemeta=true
+
 # Display
 debug.hwui.use_buffer_age=false
 persist.hwc.mdpcomp.enable=true
