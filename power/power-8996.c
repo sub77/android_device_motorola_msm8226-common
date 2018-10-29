@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015-2016, The Linux Foundation. All rights reserved.
  * Copyright (C) 2018 The LineageOS Project
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,30 +57,27 @@ static int current_power_profile = PROFILE_BALANCED;
 static int profile_high_performance[] = {
     SCHED_BOOST_ON_V3, 0x1,
     ALL_CPUS_PWR_CLPS_DIS_V3, 0x1,
-    CPUS_ONLINE_MIN_BIG, 0x4,
+    CPUS_ONLINE_MIN_BIG, 0x2,
+    CPUS_ONLINE_MIN_LITTLE, 0x2,
     MIN_FREQ_BIG_CORE_0, 0xFFF,
     MIN_FREQ_LITTLE_CORE_0, 0xFFF,
-    GPU_MIN_POWER_LEVEL, 0x1,
-    SCHED_PREFER_IDLE_DIS_V3, 0x1,
-    SCHED_SMALL_TASK, 0x1,
-    SCHED_MOSTLY_IDLE_NR_RUN, 0x1,
-    SCHED_MOSTLY_IDLE_LOAD, 0x1,
 };
 
 static int profile_power_save[] = {
     CPUS_ONLINE_MAX_BIG, 0x1,
-    MAX_FREQ_BIG_CORE_0, 0x3bf,
-    MAX_FREQ_LITTLE_CORE_0, 0x300,
+    MAX_FREQ_BIG_CORE_0, 0x3E8,
+    MAX_FREQ_LITTLE_CORE_0, 0x3E8,
 };
 
 static int profile_bias_power[] = {
-    MAX_FREQ_BIG_CORE_0, 0x4B0,
-    MAX_FREQ_LITTLE_CORE_0, 0x300,
+    MAX_FREQ_BIG_CORE_0, 0x514,
+    MAX_FREQ_LITTLE_CORE_0, 0x3E8,
 };
 
 static int profile_bias_performance[] = {
-    CPUS_ONLINE_MAX_BIG, 0x4,
-    MIN_FREQ_BIG_CORE_0, 0x540,
+    CPUS_ONLINE_MAX_BIG, 0x2,
+    CPUS_ONLINE_MAX_LITTLE, 0x2,
+    MIN_FREQ_BIG_CORE_0, 0x578,
 };
 
 #ifdef INTERACTION_BOOST
@@ -239,15 +236,9 @@ static int process_video_encode_hint(void *metadata)
         return HINT_NONE;
     }
 
-    if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU0) == -1) {
-        if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU1) == -1) {
-            if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU2) == -1) {
-                if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU3) == -1) {
-                    ALOGE("Can't obtain scaling governor.");
-                    return HINT_NONE;
-                }
-            }
-        }
+    if (get_scaling_governor(governor, sizeof(governor)) == -1) {
+        ALOGE("Can't obtain scaling governor.");
+        return HINT_NONE;
     }
 
     /* Initialize encode metadata struct fields */
@@ -291,8 +282,6 @@ int power_hint_override(power_hint_t hint, void *data)
     }
 
     switch (hint) {
-        case POWER_HINT_VSYNC:
-            break;
         case POWER_HINT_VIDEO_ENCODE:
             ret_val = process_video_encode_hint(data);
             break;
@@ -308,35 +297,7 @@ int power_hint_override(power_hint_t hint, void *data)
     return ret_val;
 }
 
-int set_interactive_override(int on)
+int set_interactive_override(int UNUSED(on))
 {
-    char governor[80];
-
-    if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU0) == -1) {
-        if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU1) == -1) {
-            if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU2) == -1) {
-                if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU3) == -1) {
-                    ALOGE("Can't obtain scaling governor.");
-                    return HINT_NONE;
-                }
-            }
-        }
-    }
-
-    if (!on) {
-        /* Display off. */
-        if (is_interactive_governor(governor)) {
-            int resource_values[] = {
-                INT_OP_CLUSTER0_TIMER_RATE, BIG_LITTLE_TR_MS_40
-            };
-            perform_hint_action(DISPLAY_STATE_HINT_ID,
-                    resource_values, ARRAY_SIZE(resource_values));
-        }
-    } else {
-        /* Display on. */
-        if (is_interactive_governor(governor)) {
-            undo_hint_action(DISPLAY_STATE_HINT_ID);
-        }
-    }
-    return HINT_HANDLED;
+    return HINT_HANDLED; /* Don't excecute this code path, not in use */
 }

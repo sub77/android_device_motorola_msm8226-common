@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2012-2017, The Linux Foundation. All rights reserved.
+ * Copyright (C) 2017-2018 The LineageOS Project
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are
@@ -68,25 +69,27 @@ enum stats_type {
     VOTER_MPSS,
     VOTER_ADSP,
     VOTER_SLPI,
+    VOTER_PRONTO,
+    VOTER_TZ,
+    VOTER_LPASS,
+    VOTER_SPSS,
     MAX_PLATFORM_STATS,
 
-#ifndef V1_0_HAL
+#ifndef NO_WLAN_STATS
     //WLAN Stats
     WLAN_POWER_DEBUG_STATS = 0,
     MAX_WLAN_STATS,
 #endif
 };
 
+#ifndef NO_WLAN_STATS
 enum subsystem_type {
-#ifndef V1_0_HAL
     SUBSYSTEM_WLAN = 0,
-#endif
 
     //Don't add any lines after this line
     SUBSYSTEM_COUNT
 };
 
-#ifndef V1_0_HAL
 enum wlan_sleep_states {
     WLAN_STATE_ACTIVE = 0,
     WLAN_STATE_DEEP_SLEEP,
@@ -129,9 +132,10 @@ void power_hint(power_hint_t hint, void *data);
 void power_set_interactive(int on);
 void set_feature(feature_t feature, int state);
 int extract_platform_stats(uint64_t *list);
-#ifndef V1_0_HAL
+#ifndef NO_WLAN_STATS
 int extract_wlan_stats(uint64_t *list);
 #endif
+int __attribute__ ((weak)) get_number_of_profiles();
 
 #ifdef __cplusplus
 }

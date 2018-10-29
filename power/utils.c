@@ -44,11 +44,17 @@
 #define LOG_TAG "QCOM PowerHAL"
 #include <log/log.h>
 
-char scaling_gov_path[4][80] ={
-    "sys/devices/system/cpu/cpu0/cpufreq/scaling_governor",
-    "sys/devices/system/cpu/cpu1/cpufreq/scaling_governor",
-    "sys/devices/system/cpu/cpu2/cpufreq/scaling_governor",
-    "sys/devices/system/cpu/cpu3/cpufreq/scaling_governor"
+#define USINSEC 1000000L
+#define NSINUS 1000L
+
+#define SOC_ID_0 "/sys/devices/soc0/soc_id"
+#define SOC_ID_1 "/sys/devices/system/soc/soc0/id"
+
+const char *scaling_gov_path[4] = {
+    "/sys/devices/system/cpu/cpu0/cpufreq/scaling_governor",
+    "/sys/devices/system/cpu/cpu1/cpufreq/scaling_governor",
+    "/sys/devices/system/cpu/cpu2/cpufreq/scaling_governor",
+    "/sys/devices/system/cpu/cpu3/cpufreq/scaling_governor"
 };
 
 #define PERF_HAL_PATH "libqti-perfd-client.so"
@@ -61,14 +67,25 @@ static struct list_node active_hint_list_head;
 
 static void *get_qcopt_handle()
 {
+    char qcopt_lib_path[PATH_MAX] = {0};
     void *handle = NULL;
 
     dlerror();
 
-    handle = dlopen(PERF_HAL_PATH, RTLD_NOW);
+    if (property_get("ro.vendor.extension_library", qcopt_lib_path,
+                NULL)) {
+        handle = dlopen(qcopt_lib_path, RTLD_NOW);
+        if (!handle) {
+            ALOGE("Unable to open %s: %s\n", qcopt_lib_path,
+                    dlerror());
+        }
+    }
     if (!handle) {
-        ALOGE("Unable to open %s: %s\n", PERF_HAL_PATH,
-                dlerror());
+        handle = dlopen(PERF_HAL_PATH, RTLD_NOW);
+        if (!handle) {
+            ALOGE("Unable to open %s: %s\n", PERF_HAL_PATH,
+                    dlerror());
+        }
     }
 
     return handle;
@@ -113,7 +130,7 @@ static void __attribute__ ((destructor)) cleanup(void)
     }
 }
 
-int sysfs_read(char *path, char *s, int num_bytes)
+int sysfs_read(const char *path, char *s, int num_bytes)
 {
     char buf[80];
     int count;
@@ -141,7 +158,7 @@ int sysfs_read(char *path, char *s, int num_bytes)
     return ret;
 }
 
-int sysfs_write(char *path, char *s)
+int sysfs_write(const char *path, char *s)
 {
     char buf[80];
     int len;
@@ -210,6 +227,12 @@ int is_interactive_governor(char* governor) {
    return 0;
 }
 
+int is_ondemand_governor(char* governor) {
+   if (strncmp(governor, ONDEMAND_GOVERNOR, (strlen(ONDEMAND_GOVERNOR)+1)) == 0)
+      return 1;
+   return 0;
+}
+
 #ifndef INTERACTION_BOOST
 void interaction(int UNUSED(duration), int UNUSED(num_args), int UNUSED(opt_list[]))
 {
@@ -231,22 +254,7 @@ void interaction(int duration, int num_args, int opt_list[])
 #endif
 }
 
-int interaction_with_handle(int lock_handle, int duration, int num_args, int opt_list[])
-{
-    if (duration < 0 || num_args < 1 || opt_list[0] == 0)
-        return 0;
-
-    if (qcopt_handle) {
-        if (perf_lock_acq) {
-            lock_handle = perf_lock_acq(lock_handle, duration, opt_list, num_args);
-            if (lock_handle == -1)
-                ALOGE("Failed to acquire lock.");
-        }
-    }
-    return lock_handle;
-}
-
-//this is interaction_with_handle using perf_hint instead of
+//this is interaction using perf_hint instead of
 //perf_lock_acq
 int perf_hint_enable(int hint_id , int duration)
 {
@@ -271,49 +279,49 @@ void release_request(int lock_handle) {
         perf_lock_rel(lock_handle);
 }
 
-void perform_hint_action(int hint_id, int resource_values[], int num_resources)
+int perform_hint_action(int hint_id, int resource_values[], int num_resources)
 {
-    if (qcopt_handle) {
-        if (perf_lock_acq) {
-            /* Acquire an indefinite lock for the requested resources. */
-            int lock_handle = perf_lock_acq(0, 0, resource_values,
-                    num_resources);
+    if (qcopt_handle && perf_lock_acq) {
+        /* Acquire an indefinite lock for the requested resources. */
+        int lock_handle = perf_lock_acq(0, 0, resource_values,
+                num_resources);
 
-            if (lock_handle == -1) {
-                ALOGE("Failed to acquire lock.");
-            } else {
-                /* Add this handle to our internal hint-list. */
-                struct hint_data *new_hint =
-                    (struct hint_data *)malloc(sizeof(struct hint_data));
+        if (lock_handle == -1) {
+            ALOGE("Failed to acquire lock.");
+            return -EINVAL;
+        }
 
-                if (new_hint) {
-                    if (!active_hint_list_head.compare) {
-                        active_hint_list_head.compare =
-                            (int (*)(void *, void *))hint_compare;
-                        active_hint_list_head.dump = (void (*)(void *))hint_dump;
-                    }
+        /* Add this handle to our internal hint-list. */
+        struct hint_data *new_hint =
+            (struct hint_data *)malloc(sizeof(struct hint_data));
 
-                    new_hint->hint_id = hint_id;
-                    new_hint->perflock_handle = lock_handle;
+        if (!new_hint) {
+            /* Can't keep track of this lock. Release it. */
+            if (perf_lock_rel)
+                perf_lock_rel(lock_handle);
+            ALOGE("Failed to process hint.");
+            return -ENOMEM;
+        }
 
-                    if (add_list_node(&active_hint_list_head, new_hint) == NULL) {
-                        free(new_hint);
-                        /* Can't keep track of this lock. Release it. */
-                        if (perf_lock_rel)
-                            perf_lock_rel(lock_handle);
+        if (!active_hint_list_head.compare) {
+            active_hint_list_head.compare =
+                (int (*)(void *, void *))hint_compare;
+            active_hint_list_head.dump = (void (*)(void *))hint_dump;
+        }
 
-                        ALOGE("Failed to process hint.");
-                    }
-                } else {
-                    /* Can't keep track of this lock. Release it. */
-                    if (perf_lock_rel)
-                        perf_lock_rel(lock_handle);
+        new_hint->hint_id = hint_id;
+        new_hint->perflock_handle = lock_handle;
 
-                    ALOGE("Failed to process hint.");
-                }
-            }
+        if (add_list_node(&active_hint_list_head, new_hint) == NULL) {
+            free(new_hint);
+            /* Can't keep track of this lock. Release it. */
+            if (perf_lock_rel)
+                perf_lock_rel(lock_handle);
+            ALOGE("Failed to process hint.");
+            return -ENOMEM;
         }
     }
+    return 0;
 }
 
 void undo_hint_action(int hint_id)
@@ -363,4 +371,34 @@ void undo_initial_hint_action()
             perf_lock_rel(1);
         }
     }
+}
+
+long long calc_timespan_us(struct timespec start, struct timespec end)
+{
+    long long diff_in_us = 0;
+    diff_in_us += (end.tv_sec - start.tv_sec) * USINSEC;
+    diff_in_us += (end.tv_nsec - start.tv_nsec) / NSINUS;
+    return diff_in_us;
+}
+
+int get_soc_id(void)
+{
+    int fd;
+    int soc_id = -1;
+    char buf[10] = { 0 };
+
+    if (!access(SOC_ID_0, F_OK))
+        fd = open(SOC_ID_0, O_RDONLY);
+    else
+        fd = open(SOC_ID_1, O_RDONLY);
+
+    if (fd >= 0) {
+        if (read(fd, buf, sizeof(buf) - 1) == -1)
+            ALOGW("Unable to read soc_id");
+        else
+            soc_id = atoi(buf);
+    }
+
+    close(fd);
+    return soc_id;
 }

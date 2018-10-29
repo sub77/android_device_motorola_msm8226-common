@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017, The Linux Foundation. All rights reserved.
  * Copyright (C) 2018 The LineageOS Project
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,38 +49,40 @@
 #include "performance.h"
 #include "power-common.h"
 
-#define CHECK_HANDLE(x) ((x)>0)
-#define NUM_PERF_MODES  3
+#define MIN_VAL(X,Y) ((X>Y)?(Y):(X))
+
+static int video_encode_hint_sent;
 
 static int current_power_profile = PROFILE_BALANCED;
 
 static int profile_high_performance[] = {
-    SCHED_BOOST_ON_V3, 0x1,
     ALL_CPUS_PWR_CLPS_DIS_V3, 0x1,
+    SCHED_BOOST_ON_V3, 0x1,
+    SCHED_MOSTLY_IDLE_NR_RUN, 0x1,
+    SCHED_SPILL_NR_RUN, 0x1,
+    SCHED_RESTRICT_CLUSTER_SPILL, 0x0,
+    SCHED_GROUP_DOWN_MIGRATE, 0x5F,
+    SCHED_GROUP_UP_MIGRATE, 0x64,
     CPUS_ONLINE_MIN_BIG, 0x4,
     MIN_FREQ_BIG_CORE_0, 0xFFF,
     MIN_FREQ_LITTLE_CORE_0, 0xFFF,
-    GPU_MIN_POWER_LEVEL, 0x1,
-    SCHED_PREFER_IDLE_DIS_V3, 0x1,
-    SCHED_SMALL_TASK, 0x1,
-    SCHED_MOSTLY_IDLE_NR_RUN, 0x1,
-    SCHED_MOSTLY_IDLE_LOAD, 0x1,
 };
 
 static int profile_power_save[] = {
-    CPUS_ONLINE_MAX_BIG, 0x1,
-    MAX_FREQ_BIG_CORE_0, 0x3bf,
-    MAX_FREQ_LITTLE_CORE_0, 0x300,
+    CPUS_ONLINE_MAX_BIG, 0x2,
+    MAX_FREQ_BIG_CORE_0, 0x0,
+    MAX_FREQ_LITTLE_CORE_0, 0x0,
 };
 
 static int profile_bias_power[] = {
-    MAX_FREQ_BIG_CORE_0, 0x4B0,
-    MAX_FREQ_LITTLE_CORE_0, 0x300,
+    CPUS_ONLINE_MAX_BIG, 0x2,
+    MAX_FREQ_BIG_CORE_0_RESIDX, 0x3,
+    MAX_FREQ_LITTLE_CORE_0_RESIDX, 0x1,
 };
 
 static int profile_bias_performance[] = {
-    CPUS_ONLINE_MAX_BIG, 0x4,
-    MIN_FREQ_BIG_CORE_0, 0x540,
+    MIN_FREQ_BIG_CORE_0_RESIDX, 0x3,
+    MIN_FREQ_LITTLE_CORE_0_RESIDX, 0x2,
 };
 
 #ifdef INTERACTION_BOOST
@@ -137,147 +139,114 @@ static int set_power_profile(int profile)
     return ret;
 }
 
-typedef enum {
-    NORMAL_MODE       = 0,
-    SUSTAINED_MODE    = 1,
-    VR_MODE           = 2,
-    VR_SUSTAINED_MODE = (SUSTAINED_MODE|VR_MODE),
-    INVALID_MODE      = 0xFF
-} perf_mode_type_t;
+/**
+ * If target is SDM630:
+ *     return true
+ * else:
+ *     return false
+ */
+static bool is_target_SDM630(void)
+{
+    static bool is_SDM630 = false;
+    int soc_id;
 
-typedef struct perf_mode {
-    perf_mode_type_t type;
-    int perf_hint_id;
-} perf_mode_t;
+    soc_id = get_soc_id();
+    if (soc_id == 318 || soc_id == 327)
+        is_SDM630 = true;
 
-perf_mode_t perf_modes[NUM_PERF_MODES] = {
-    { SUSTAINED_MODE, SUSTAINED_PERF_HINT },
-    { VR_MODE, VR_MODE_HINT },
-    { VR_SUSTAINED_MODE, VR_MODE_SUSTAINED_PERF_HINT }
-};
-
-static int current_mode = NORMAL_MODE;
-
-static inline int get_perfd_hint_id(perf_mode_type_t type) {
-    int i;
-    for (i = 0; i < NUM_PERF_MODES; i++) {
-        if (perf_modes[i].type == type) {
-            ALOGD("Hint id is 0x%x for mode 0x%x", perf_modes[i].perf_hint_id, type);
-            return perf_modes[i].perf_hint_id;
-        }
-    }
-    ALOGD("Couldn't find the hint for mode 0x%x", type);
-    return 0;
+    return is_SDM630;
 }
 
-static int switch_mode(perf_mode_type_t mode) {
-    int hint_id = 0;
-    static int perfd_mode_handle = -1;
-
-    // release existing mode if any
-    if (CHECK_HANDLE(perfd_mode_handle)) {
-        ALOGD("Releasing handle 0x%x", perfd_mode_handle);
-        release_request(perfd_mode_handle);
-        perfd_mode_handle = -1;
-    }
-    // switch to a perf mode
-    hint_id = get_perfd_hint_id(mode);
-    if (hint_id != 0) {
-        perfd_mode_handle = perf_hint_enable(hint_id, 0);
-        if (!CHECK_HANDLE(perfd_mode_handle)) {
-            ALOGE("Failed perf_hint_interaction for mode: 0x%x", mode);
-            return -1;
-        }
-        ALOGD("Acquired handle 0x%x", perfd_mode_handle);
-    }
-    return 0;
-}
-
-static int process_perf_hint(void *data, perf_mode_type_t mode) {
-    // enable
-    if (*(int32_t *)data) {
-        ALOGI("Enable request for mode: 0x%x", mode);
-        // check if mode is current mode
-        if (current_mode & mode) {
-            ALOGD("Mode 0x%x already enabled", mode);
-            return HINT_HANDLED;
-        }
-        // enable requested mode
-        if (0 != switch_mode(current_mode | mode)) {
-            ALOGE("Couldn't enable mode 0x%x", mode);
-            return HINT_NONE;
-        }
-        current_mode |= mode;
-        ALOGI("Current mode is 0x%x", current_mode);
-    // disable
-    } else {
-        ALOGI("Disable request for mode: 0x%x", mode);
-        // check if mode is enabled
-        if (!(current_mode & mode)) {
-            ALOGD("Mode 0x%x already disabled", mode);
-            return HINT_HANDLED;
-        }
-        // disable requested mode
-        if (0 != switch_mode(current_mode & ~mode)) {
-            ALOGE("Couldn't disable mode 0x%x", mode);
-            return HINT_NONE;
-        }
-        current_mode &= ~mode;
-        ALOGI("Current mode is 0x%x", current_mode);
-    }
-
-    return HINT_HANDLED;
-}
-
-static int process_video_encode_hint(void *metadata)
+static void process_video_encode_hint(void *metadata)
 {
     char governor[80];
+    int resource_values[20];
+    int num_resources;
     struct video_encode_metadata_t video_encode_metadata;
-    static int video_encode_handle = 0;
-
-    if (!metadata) {
-        return HINT_NONE;
-    }
 
     if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU0) == -1) {
         if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU1) == -1) {
             if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU2) == -1) {
                 if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU3) == -1) {
                     ALOGE("Can't obtain scaling governor.");
-                    return HINT_NONE;
+                    return;
                 }
             }
         }
     }
 
-    /* Initialize encode metadata struct fields */
+    if (!metadata) {
+        return;
+    }
+
+    /* Initialize encode metadata struct fields. */
     memset(&video_encode_metadata, 0, sizeof(struct video_encode_metadata_t));
     video_encode_metadata.state = -1;
+    video_encode_metadata.hint_id = DEFAULT_VIDEO_ENCODE_HINT_ID;
 
-    if (parse_video_encode_metadata((char *)metadata, &video_encode_metadata) == -1) {
+    if (parse_video_encode_metadata((char *)metadata,
+            &video_encode_metadata) == -1) {
         ALOGE("Error occurred while parsing metadata.");
-        return HINT_NONE;
+        return;
     }
 
     if (video_encode_metadata.state == 1) {
         if (is_interactive_governor(governor)) {
-            video_encode_handle = perf_hint_enable(
-                    VIDEO_ENCODE_HINT, 0);
-            return HINT_HANDLED;
+            if (is_target_SDM630()) {
+                /*
+                   1. CPUfreq params
+                      - hispeed freq for big - 1113Mhz
+                      - go hispeed load for big - 95
+                      - above_hispeed_delay for big - 40ms
+                      - target loads - 95
+                      - nr_run - 5
+                   2. BusDCVS V2 params
+                      - Sample_ms of 10ms
+                 */
+                int res[] = {
+                    HISPEED_FREQ_BIG, 0x459,
+                    GO_HISPEED_LOAD_BIG, 0x5F,
+                    ABOVE_HISPEED_DELAY_BIG, 0x4,
+                    TARGET_LOADS_BIG, 0x5F,
+                    SCHED_SPILL_NR_RUN, 0X5,
+                    CPUBW_HWMON_SAMPLE_MS, 0xA
+                };
+                memcpy(resource_values, res, MIN_VAL(sizeof(resource_values), sizeof(res)));
+                num_resources = ARRAY_SIZE(res);
+            } else {
+                /*
+                   1. CPUfreq params
+                      - hispeed freq for little - 902Mhz
+                      - go hispeed load for little - 95
+                      - above_hispeed_delay for little - 40ms
+                   2. BusDCVS V2 params
+                      - Sample_ms of 10ms
+                 */
+                int res[] = {
+                    HISPEED_FREQ_LITTLE, 0x386,
+                    GO_HISPEED_LOAD_LITTLE, 0x5F,
+                    ABOVE_HISPEED_DELAY_LITTLE, 0x4,
+                    CPUBW_HWMON_SAMPLE_MS, 0xA
+                };
+                memcpy(resource_values, res, MIN_VAL(sizeof(resource_values), sizeof(res)));
+                num_resources = ARRAY_SIZE(res);
+            }
+            if (!video_encode_hint_sent) {
+                perform_hint_action(video_encode_metadata.hint_id,
+                        resource_values, num_resources);
+                video_encode_hint_sent = 1;
+            }
         }
     } else if (video_encode_metadata.state == 0) {
         if (is_interactive_governor(governor)) {
-            release_request(video_encode_handle);
-            return HINT_HANDLED;
+            undo_hint_action(video_encode_metadata.hint_id);
+            video_encode_hint_sent = 0;
         }
     }
-    return HINT_NONE;
 }
 
 int power_hint_override(power_hint_t hint, void *data)
 {
-    int ret_val = HINT_NONE;
-
     if (hint == POWER_HINT_SET_PROFILE) {
         if (set_power_profile(*(int32_t *)data) < 0)
             ALOGE("Setting power profile failed. perf HAL not started?");
@@ -294,23 +263,19 @@ int power_hint_override(power_hint_t hint, void *data)
         case POWER_HINT_VSYNC:
             break;
         case POWER_HINT_VIDEO_ENCODE:
-            ret_val = process_video_encode_hint(data);
-            break;
-        case POWER_HINT_SUSTAINED_PERFORMANCE:
-            ret_val = process_perf_hint(data, SUSTAINED_MODE);
-            break;
-        case POWER_HINT_VR_MODE:
-            ret_val = process_perf_hint(data, VR_MODE);
-            break;
+            process_video_encode_hint(data);
+            return HINT_HANDLED;
         default:
             break;
     }
-    return ret_val;
+    return HINT_NONE;
 }
 
 int set_interactive_override(int on)
 {
     char governor[80];
+    int resource_values[20];
+    int num_resources;
 
     if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU0) == -1) {
         if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU1) == -1) {
@@ -326,11 +291,46 @@ int set_interactive_override(int on)
     if (!on) {
         /* Display off. */
         if (is_interactive_governor(governor)) {
-            int resource_values[] = {
-                INT_OP_CLUSTER0_TIMER_RATE, BIG_LITTLE_TR_MS_40
-            };
+            if (is_target_SDM630()) {
+                /*
+                   1. CPUfreq params
+                      - hispeed freq for big - 1113Mhz
+                      - go hispeed load for big - 95
+                      - above_hispeed_delay for big - 40ms
+                   2. BusDCVS V2 params
+                      - Sample_ms of 10ms
+                 */
+                int res[] = {
+                    HISPEED_FREQ_BIG, 0x459,
+                    GO_HISPEED_LOAD_BIG, 0x5F,
+                    ABOVE_HISPEED_DELAY_BIG, 0x4,
+                    CPUBW_HWMON_SAMPLE_MS, 0xA
+                };
+                memcpy(resource_values, res, MIN_VAL(sizeof(resource_values), sizeof(res)));
+                num_resources = ARRAY_SIZE(res);
+            } else {
+                /*
+                   1. CPUfreq params
+                      - hispeed freq for little - 902Mhz
+                      - go hispeed load for little - 95
+                      - above_hispeed_delay for little - 40ms
+                   2. BusDCVS V2 params
+                      - Sample_ms of 10ms
+                   3. Sched group upmigrate - 500
+                 */
+                int res[] =  {
+                    HISPEED_FREQ_LITTLE, 0x386,
+                    GO_HISPEED_LOAD_LITTLE, 0x5F,
+                    ABOVE_HISPEED_DELAY_LITTLE, 0x4,
+                    CPUBW_HWMON_SAMPLE_MS, 0xA,
+                    SCHED_GROUP_UP_MIGRATE, 0x1F4
+                };
+                memcpy(resource_values, res, MIN_VAL(sizeof(resource_values), sizeof(res)));
+                num_resources = ARRAY_SIZE(res);
+
+            }
             perform_hint_action(DISPLAY_STATE_HINT_ID,
-                    resource_values, ARRAY_SIZE(resource_values));
+                    resource_values, num_resources);
         }
     } else {
         /* Display on. */

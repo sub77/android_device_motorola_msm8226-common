@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015, The Linux Foundation. All rights reserved.
  * Copyright (C) 2018 The LineageOS Project
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,25 +52,46 @@
 static int current_power_profile = PROFILE_BALANCED;
 
 static int profile_high_performance[] = {
-    CPUS_ONLINE_MIN_4,
+    SCHED_BOOST_ON, CPUS_ONLINE_MAX,
+    ALL_CPUS_PWR_CLPS_DIS, 0x0901,
     CPU0_MIN_FREQ_TURBO_MAX,
     CPU1_MIN_FREQ_TURBO_MAX,
     CPU2_MIN_FREQ_TURBO_MAX,
-    CPU3_MIN_FREQ_TURBO_MAX
+    CPU3_MIN_FREQ_TURBO_MAX,
+    CPU4_MIN_FREQ_TURBO_MAX,
+    CPU5_MIN_FREQ_TURBO_MAX
 };
 
 static int profile_power_save[] = {
-    CPUS_ONLINE_MAX_LIMIT_2,
-    CPU0_MAX_FREQ_NONTURBO_MAX,
-    CPU1_MAX_FREQ_NONTURBO_MAX,
-    CPU2_MAX_FREQ_NONTURBO_MAX,
-    CPU3_MAX_FREQ_NONTURBO_MAX
+    CPUS_ONLINE_MPD_OVERRIDE, 0x0A03,
+    CPU0_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU1_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU2_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU3_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU4_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU5_MAX_FREQ_NONTURBO_MAX - 2
+};
+
+static int profile_bias_power[] = {
+    0x0A03, 0x0902,
+    CPU0_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU1_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU2_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU3_MAX_FREQ_NONTURBO_MAX - 2,
+    CPU4_MAX_FREQ_NONTURBO_MAX,
+    CPU5_MAX_FREQ_NONTURBO_MAX
+};
+
+static int profile_bias_performance[] = {
+    CPUS_ONLINE_MAX_LIMIT_MAX,
+    CPU4_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU5_MIN_FREQ_NONTURBO_MAX + 1
 };
 
 #ifdef INTERACTION_BOOST
 int get_number_of_profiles()
 {
-    return 3;
+    return 5;
 }
 #endif
 
@@ -100,6 +121,15 @@ static int set_power_profile(int profile)
                 profile_high_performance, ARRAY_SIZE(profile_high_performance));
         profile_name = "performance";
 
+    } else if (profile == PROFILE_BIAS_POWER) {
+        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID, profile_bias_power,
+                ARRAY_SIZE(profile_bias_power));
+        profile_name = "bias power";
+
+    } else if (profile == PROFILE_BIAS_PERFORMANCE) {
+        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID,
+                profile_bias_performance, ARRAY_SIZE(profile_bias_performance));
+        profile_name = "bias perf";
     } else if (profile == PROFILE_BALANCED) {
         ret = 0;
         profile_name = "balanced";
@@ -112,10 +142,66 @@ static int set_power_profile(int profile)
     return ret;
 }
 
+static void process_video_encode_hint(void *metadata)
+{
+    char governor[80];
+    struct video_encode_metadata_t video_encode_metadata;
+
+    if (get_scaling_governor(governor, sizeof(governor)) == -1) {
+        ALOGE("Can't obtain scaling governor.");
+        return;
+    }
+
+    if (!metadata) {
+        return;
+    }
+
+    /* Initialize encode metadata struct fields. */
+    memset(&video_encode_metadata, 0, sizeof(struct video_encode_metadata_t));
+    video_encode_metadata.state = -1;
+    video_encode_metadata.hint_id = DEFAULT_VIDEO_ENCODE_HINT_ID;
+
+    if (parse_video_encode_metadata((char *)metadata,
+            &video_encode_metadata) == -1) {
+        ALOGE("Error occurred while parsing metadata.");
+        return;
+    }
+
+    if (video_encode_metadata.state == 1) {
+        if (is_interactive_governor(governor)) {
+            /* sched and cpufreq params
+             * hispeed freq - 768 MHz
+             * target load - 90
+             * above_hispeed_delay - 40ms
+             * sched_small_tsk - 50
+             */
+            int resource_values[] = {
+                0x2C07, 0x2F5A, 0x2704, 0x4032
+            };
+            perform_hint_action(video_encode_metadata.hint_id,
+                    resource_values, ARRAY_SIZE(resource_values));
+        }
+    } else if (video_encode_metadata.state == 0) {
+        if (is_interactive_governor(governor)) {
+            undo_hint_action(video_encode_metadata.hint_id);
+        }
+    }
+}
+
+static int resources_interaction_fling_boost[] = {
+    ALL_CPUS_PWR_CLPS_DIS,
+    SCHED_BOOST_ON,
+    SCHED_PREFER_IDLE_DIS
+};
+
 static int resources_interaction_boost[] = {
-    CPUS_ONLINE_MIN_2,
-    0x20B,
-    0x30B
+    ALL_CPUS_PWR_CLPS_DIS,
+    SCHED_PREFER_IDLE_DIS
+};
+
+static int resources_launch[] = {
+    SCHED_BOOST_ON,
+    0x20C
 };
 
 int power_hint_override(power_hint_t hint, void *data)
@@ -128,7 +214,7 @@ int power_hint_override(power_hint_t hint, void *data)
 
     if (hint == POWER_HINT_SET_PROFILE) {
         if (set_power_profile(*(int32_t *)data) < 0)
-            ALOGE("Setting power profile failed. mpdecision not started?");
+            ALOGE("Setting power profile failed. perfd not started?");
         return HINT_HANDLED;
     }
 
@@ -158,11 +244,53 @@ int power_hint_override(power_hint_t hint, void *data)
             s_previous_boost_timespec = cur_boost_timespec;
             s_previous_duration = duration;
 
-            interaction(duration, ARRAY_SIZE(resources_interaction_boost),
-                    resources_interaction_boost);
+            if (duration >= 1500) {
+                interaction(duration, ARRAY_SIZE(resources_interaction_fling_boost),
+                        resources_interaction_fling_boost);
+            } else {
+                interaction(duration, ARRAY_SIZE(resources_interaction_boost),
+                        resources_interaction_boost);
+            }
+            return HINT_HANDLED;
+        case POWER_HINT_LAUNCH:
+            duration = 2000;
+            interaction(duration, ARRAY_SIZE(resources_launch),
+                    resources_launch);
+            return HINT_HANDLED;
+        case POWER_HINT_VIDEO_ENCODE:
+            process_video_encode_hint(data);
             return HINT_HANDLED;
         default:
             break;
     }
     return HINT_NONE;
+}
+
+int set_interactive_override(int on)
+{
+    char governor[80];
+
+    if (get_scaling_governor(governor, sizeof(governor)) == -1) {
+        ALOGE("Can't obtain scaling governor.");
+        return HINT_NONE;
+    }
+
+    if (!on) {
+        /* Display off */
+        if (is_interactive_governor(governor)) {
+            // sched upmigrate = 99, sched downmigrate = 95
+            // keep the big cores around, but make them very hard to use
+            int resource_values[] = {
+                0x4E63, 0x4F5F
+            };
+            perform_hint_action(DISPLAY_STATE_HINT_ID,
+                    resource_values, ARRAY_SIZE(resource_values));
+        }
+    } else {
+        /* Display on */
+        if (is_interactive_governor(governor)) {
+            undo_hint_action(DISPLAY_STATE_HINT_ID);
+        }
+    }
+    return HINT_HANDLED;
 }

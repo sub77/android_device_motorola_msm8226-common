@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2017, The Linux Foundation. All rights reserved.
  * Copyright (C) 2018 The LineageOS Project
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,90 +52,9 @@
 #define CHECK_HANDLE(x) ((x)>0)
 #define NUM_PERF_MODES  3
 
-static int current_power_profile = PROFILE_BALANCED;
+#define SYS_DISPLAY_PWR "/sys/kernel/hbtp/display_pwr"
 
-static int profile_high_performance[] = {
-    SCHED_BOOST_ON_V3, 0x1,
-    ALL_CPUS_PWR_CLPS_DIS_V3, 0x1,
-    CPUS_ONLINE_MIN_BIG, 0x4,
-    MIN_FREQ_BIG_CORE_0, 0xFFF,
-    MIN_FREQ_LITTLE_CORE_0, 0xFFF,
-    GPU_MIN_POWER_LEVEL, 0x1,
-    SCHED_PREFER_IDLE_DIS_V3, 0x1,
-    SCHED_SMALL_TASK, 0x1,
-    SCHED_MOSTLY_IDLE_NR_RUN, 0x1,
-    SCHED_MOSTLY_IDLE_LOAD, 0x1,
-};
-
-static int profile_power_save[] = {
-    CPUS_ONLINE_MAX_BIG, 0x1,
-    MAX_FREQ_BIG_CORE_0, 0x3bf,
-    MAX_FREQ_LITTLE_CORE_0, 0x300,
-};
-
-static int profile_bias_power[] = {
-    MAX_FREQ_BIG_CORE_0, 0x4B0,
-    MAX_FREQ_LITTLE_CORE_0, 0x300,
-};
-
-static int profile_bias_performance[] = {
-    CPUS_ONLINE_MAX_BIG, 0x4,
-    MIN_FREQ_BIG_CORE_0, 0x540,
-};
-
-#ifdef INTERACTION_BOOST
-int get_number_of_profiles()
-{
-    return 5;
-}
-#endif
-
-static int set_power_profile(int profile)
-{
-    int ret = -EINVAL;
-    const char *profile_name = NULL;
-
-    if (profile == current_power_profile)
-        return 0;
-
-    ALOGV("%s: Profile=%d", __func__, profile);
-
-    if (current_power_profile != PROFILE_BALANCED) {
-        undo_hint_action(DEFAULT_PROFILE_HINT_ID);
-        ALOGV("%s: Hint undone", __func__);
-        current_power_profile = PROFILE_BALANCED;
-    }
-
-    if (profile == PROFILE_POWER_SAVE) {
-        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID, profile_power_save,
-                ARRAY_SIZE(profile_power_save));
-        profile_name = "powersave";
-
-    } else if (profile == PROFILE_HIGH_PERFORMANCE) {
-        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID,
-                profile_high_performance, ARRAY_SIZE(profile_high_performance));
-        profile_name = "performance";
-
-    } else if (profile == PROFILE_BIAS_POWER) {
-        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID, profile_bias_power,
-                ARRAY_SIZE(profile_bias_power));
-        profile_name = "bias power";
-
-    } else if (profile == PROFILE_BIAS_PERFORMANCE) {
-        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID,
-                profile_bias_performance, ARRAY_SIZE(profile_bias_performance));
-        profile_name = "bias perf";
-    } else if (profile == PROFILE_BALANCED) {
-        ret = 0;
-        profile_name = "balanced";
-    }
-
-    if (ret == 0) {
-        current_power_profile = profile;
-        ALOGD("%s: Set %s mode", __func__, profile_name);
-    }
-    return ret;
-}
+static int display_fd;
 
 typedef enum {
     NORMAL_MODE       = 0,
@@ -239,15 +158,9 @@ static int process_video_encode_hint(void *metadata)
         return HINT_NONE;
     }
 
-    if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU0) == -1) {
-        if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU1) == -1) {
-            if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU2) == -1) {
-                if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU3) == -1) {
-                    ALOGE("Can't obtain scaling governor.");
-                    return HINT_NONE;
-                }
-            }
-        }
+    if (get_scaling_governor(governor, sizeof(governor)) == -1) {
+        ALOGE("Can't obtain scaling governor.");
+        return HINT_NONE;
     }
 
     /* Initialize encode metadata struct fields */
@@ -277,22 +190,7 @@ static int process_video_encode_hint(void *metadata)
 int power_hint_override(power_hint_t hint, void *data)
 {
     int ret_val = HINT_NONE;
-
-    if (hint == POWER_HINT_SET_PROFILE) {
-        if (set_power_profile(*(int32_t *)data) < 0)
-            ALOGE("Setting power profile failed. perf HAL not started?");
-        return HINT_HANDLED;
-    }
-
-    // Skip other hints in high/low power modes
-    if (current_power_profile == PROFILE_POWER_SAVE ||
-            current_power_profile == PROFILE_HIGH_PERFORMANCE) {
-        return HINT_HANDLED;
-    }
-
     switch (hint) {
-        case POWER_HINT_VSYNC:
-            break;
         case POWER_HINT_VIDEO_ENCODE:
             ret_val = process_video_encode_hint(data);
             break;
@@ -302,6 +200,16 @@ int power_hint_override(power_hint_t hint, void *data)
         case POWER_HINT_VR_MODE:
             ret_val = process_perf_hint(data, VR_MODE);
             break;
+        case POWER_HINT_INTERACTION:
+        {
+            int resources[] = {
+                MIN_FREQ_LITTLE_CORE_0, 0x514
+            };
+            int duration = 100;
+            interaction(duration, ARRAY_SIZE(resources), resources);
+            ret_val = HINT_HANDLED;
+        }
+            break;
         default:
             break;
     }
@@ -310,32 +218,36 @@ int power_hint_override(power_hint_t hint, void *data)
 
 int set_interactive_override(int on)
 {
-    char governor[80];
+    static const char *display_on = "1";
+    static const char *display_off = "0";
+    char err_buf[80];
+    static int init_interactive_hint = 0;
+    int rc = 0;
 
-    if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU0) == -1) {
-        if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU1) == -1) {
-            if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU2) == -1) {
-                if (get_scaling_governor_check_cores(governor, sizeof(governor), CPU3) == -1) {
-                    ALOGE("Can't obtain scaling governor.");
-                    return HINT_NONE;
-                }
-            }
-        }
-    }
-
-    if (!on) {
-        /* Display off. */
-        if (is_interactive_governor(governor)) {
-            int resource_values[] = {
-                INT_OP_CLUSTER0_TIMER_RATE, BIG_LITTLE_TR_MS_40
-            };
-            perform_hint_action(DISPLAY_STATE_HINT_ID,
-                    resource_values, ARRAY_SIZE(resource_values));
+    if (init_interactive_hint == 0) {
+        // First time the display is turned off
+        display_fd = TEMP_FAILURE_RETRY(open(SYS_DISPLAY_PWR, O_RDWR));
+        if (display_fd < 0) {
+            strerror_r(errno, err_buf, sizeof(err_buf));
+            ALOGE("Error opening %s: %s\n", SYS_DISPLAY_PWR, err_buf);
+        } else {
+            init_interactive_hint = 1;
         }
     } else {
-        /* Display on. */
-        if (is_interactive_governor(governor)) {
-            undo_hint_action(DISPLAY_STATE_HINT_ID);
+        if (!on) {
+            /* Display off. */
+            rc = TEMP_FAILURE_RETRY(write(display_fd, display_off, strlen(display_off)));
+            if (rc < 0) {
+                strerror_r(errno, err_buf, sizeof(err_buf));
+                ALOGE("Error writing %s to  %s: %s\n", display_off, SYS_DISPLAY_PWR, err_buf);
+            }
+        } else {
+            /* Display on */
+            rc = TEMP_FAILURE_RETRY(write(display_fd, display_on, strlen(display_on)));
+            if (rc < 0) {
+                strerror_r(errno, err_buf, sizeof(err_buf));
+                ALOGE("Error writing %s to  %s: %s\n", display_on, SYS_DISPLAY_PWR, err_buf);
+            }
         }
     }
     return HINT_HANDLED;

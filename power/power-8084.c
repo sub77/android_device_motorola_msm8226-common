@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, The Linux Foundation. All rights reserved.
  * Copyright (C) 2018 The LineageOS Project
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,28 +49,53 @@
 #include "performance.h"
 #include "power-common.h"
 
+static int first_display_off_hint;
+
 static int current_power_profile = PROFILE_BALANCED;
 
-static int profile_high_performance[] = {
-    CPUS_ONLINE_MIN_4,
-    CPU0_MIN_FREQ_TURBO_MAX,
-    CPU1_MIN_FREQ_TURBO_MAX,
-    CPU2_MIN_FREQ_TURBO_MAX,
-    CPU3_MIN_FREQ_TURBO_MAX
+/* power save mode: max 2 CPUs, max 1.2 GHz */
+static int profile_power_save[] = {
+    0x0A03,
+    CPUS_ONLINE_MAX_LIMIT_2,
+    CPU0_MAX_FREQ_NONTURBO_MAX + 1,
+    CPU1_MAX_FREQ_NONTURBO_MAX + 1,
+    CPU2_MAX_FREQ_NONTURBO_MAX + 1,
+    CPU3_MAX_FREQ_NONTURBO_MAX + 1
 };
 
-static int profile_power_save[] = {
+/* efficiency mode: max 2 CPUs, max 2.4 GHz */
+static int profile_bias_power[] = {
+    0x0A03,
     CPUS_ONLINE_MAX_LIMIT_2,
-    CPU0_MAX_FREQ_NONTURBO_MAX,
-    CPU1_MAX_FREQ_NONTURBO_MAX,
-    CPU2_MAX_FREQ_NONTURBO_MAX,
-    CPU3_MAX_FREQ_NONTURBO_MAX
+    CPU0_MAX_FREQ_NONTURBO_MAX + 14,
+    CPU1_MAX_FREQ_NONTURBO_MAX + 14,
+    CPU2_MAX_FREQ_NONTURBO_MAX + 14,
+    CPU3_MAX_FREQ_NONTURBO_MAX + 14,
+};
+
+/* quick mode: min 2 CPUs, min 1.1 GHz */
+static int profile_bias_performance[] = {
+    CPUS_ONLINE_MIN_2,
+    CPU0_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU1_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU2_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU3_MIN_FREQ_NONTURBO_MAX + 1
+};
+
+/* performance mode: min 4 CPUs, min 1.5 GHz */
+static int profile_high_performance[] = {
+    0x0901,
+    CPUS_ONLINE_MIN_4,
+    CPU0_MIN_FREQ_NONTURBO_MAX + 5,
+    CPU1_MIN_FREQ_NONTURBO_MAX + 5,
+    CPU2_MIN_FREQ_NONTURBO_MAX + 5,
+    CPU3_MIN_FREQ_NONTURBO_MAX + 5
 };
 
 #ifdef INTERACTION_BOOST
 int get_number_of_profiles()
 {
-    return 3;
+    return 5;
 }
 #endif
 
@@ -100,6 +125,15 @@ static int set_power_profile(int profile)
                 profile_high_performance, ARRAY_SIZE(profile_high_performance));
         profile_name = "performance";
 
+    } else if (profile == PROFILE_BIAS_POWER) {
+        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID, profile_bias_power,
+                ARRAY_SIZE(profile_bias_power));
+        profile_name = "bias power";
+
+    } else if (profile == PROFILE_BIAS_PERFORMANCE) {
+        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID,
+                profile_bias_performance, ARRAY_SIZE(profile_bias_performance));
+        profile_name = "bias perf";
     } else if (profile == PROFILE_BALANCED) {
         ret = 0;
         profile_name = "balanced";
@@ -112,11 +146,27 @@ static int set_power_profile(int profile)
     return ret;
 }
 
+/* fling boost: min 3 CPUs, min 1.1 GHz */
+static int resources_interaction_fling_boost[] = {
+    CPUS_ONLINE_MIN_3,
+    CPU0_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU1_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU2_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU3_MIN_FREQ_NONTURBO_MAX + 1
+};
+
+/* interactive boost: min 2 CPUs, min 1.1 GHz */
 static int resources_interaction_boost[] = {
     CPUS_ONLINE_MIN_2,
-    0x20B,
-    0x30B
+    CPU0_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU1_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU2_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU3_MIN_FREQ_NONTURBO_MAX + 1
 };
+
+const int DEFAULT_INTERACTIVE_DURATION   =  200; /* ms */
+const int MIN_FLING_DURATION             = 1500; /* ms */
+const int MAX_INTERACTIVE_DURATION       = 5000; /* ms */
 
 int power_hint_override(power_hint_t hint, void *data)
 {
@@ -140,11 +190,12 @@ int power_hint_override(power_hint_t hint, void *data)
 
     switch (hint) {
         case POWER_HINT_INTERACTION:
-            duration = 500; // 500ms by default
+            duration = DEFAULT_INTERACTIVE_DURATION;
             if (data) {
                 int input_duration = *((int*)data);
                 if (input_duration > duration) {
-                    duration = (input_duration > 5000) ? 5000 : input_duration;
+                    duration = (input_duration > MAX_INTERACTIVE_DURATION) ?
+                            MAX_INTERACTIVE_DURATION : input_duration;
                 }
             }
 
@@ -158,11 +209,60 @@ int power_hint_override(power_hint_t hint, void *data)
             s_previous_boost_timespec = cur_boost_timespec;
             s_previous_duration = duration;
 
-            interaction(duration, ARRAY_SIZE(resources_interaction_boost),
-                    resources_interaction_boost);
+            if (duration >= MIN_FLING_DURATION) {
+                interaction(duration, ARRAY_SIZE(resources_interaction_fling_boost),
+                        resources_interaction_fling_boost);
+            } else {
+                interaction(duration, ARRAY_SIZE(resources_interaction_boost),
+                        resources_interaction_boost);
+            }
             return HINT_HANDLED;
         default:
             break;
     }
     return HINT_NONE;
+}
+
+int set_interactive_override(int on)
+{
+    char governor[80];
+
+    if (get_scaling_governor(governor, sizeof(governor)) == -1) {
+        ALOGE("Can't obtain scaling governor.");
+        return HINT_NONE;
+    }
+
+    if (!on) {
+        /* Display off. */
+        /*
+         * We need to be able to identify the first display off hint
+         * and release the current lock holder
+         */
+        if (!first_display_off_hint) {
+            undo_initial_hint_action();
+            first_display_off_hint = 1;
+        }
+        /* Used for all subsequent toggles to the display */
+        undo_hint_action(DISPLAY_STATE_HINT_ID_2);
+
+        if (is_ondemand_governor(governor)) {
+            int resource_values[] = {
+                MS_500, SYNC_FREQ_600, OPTIMAL_FREQ_600, THREAD_MIGRATION_SYNC_OFF
+            };
+            perform_hint_action(DISPLAY_STATE_HINT_ID,
+                    resource_values, ARRAY_SIZE(resource_values));
+        }
+    } else {
+        /* Display on */
+        int resource_values2[] = {
+            CPUS_ONLINE_MIN_2
+        };
+        perform_hint_action(DISPLAY_STATE_HINT_ID_2,
+                resource_values2, ARRAY_SIZE(resource_values2));
+
+        if (is_ondemand_governor(governor)) {
+            undo_hint_action(DISPLAY_STATE_HINT_ID);
+        }
+    }
+    return HINT_HANDLED;
 }

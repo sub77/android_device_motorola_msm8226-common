@@ -31,6 +31,7 @@
 #define LOG_NIDEBUG 0
 
 #include <errno.h>
+#include <time.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -49,10 +50,31 @@
 #include "performance.h"
 #include "power-common.h"
 
+static int first_display_off_hint;
+
+/**
+ * If target is 8974pro:
+ *     return true
+ * else:
+ *     return false
+ */
+static bool is_target_8974pro(void)
+{
+    static bool is_8974pro = false;
+    int soc_id;
+
+    soc_id = get_soc_id();
+    if (soc_id == 194 || (soc_id >= 208 && soc_id <= 218))
+        is_8974pro = true;
+
+    return is_8974pro;
+}
+
 static int current_power_profile = PROFILE_BALANCED;
 
 static int profile_high_performance[] = {
     CPUS_ONLINE_MIN_4,
+    0x0901,
     CPU0_MIN_FREQ_TURBO_MAX,
     CPU1_MIN_FREQ_TURBO_MAX,
     CPU2_MIN_FREQ_TURBO_MAX,
@@ -60,6 +82,7 @@ static int profile_high_performance[] = {
 };
 
 static int profile_power_save[] = {
+    0x0A03,
     CPUS_ONLINE_MAX_LIMIT_2,
     CPU0_MAX_FREQ_NONTURBO_MAX,
     CPU1_MAX_FREQ_NONTURBO_MAX,
@@ -67,10 +90,25 @@ static int profile_power_save[] = {
     CPU3_MAX_FREQ_NONTURBO_MAX
 };
 
+static int profile_bias_power[] = {
+    0x0A03,
+    CPU0_MAX_FREQ_NONTURBO_MAX,
+    CPU1_MAX_FREQ_NONTURBO_MAX,
+    CPU2_MAX_FREQ_NONTURBO_MAX,
+    CPU3_MAX_FREQ_NONTURBO_MAX
+};
+
+static int profile_bias_performance[] = {
+    CPU0_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU1_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU2_MIN_FREQ_NONTURBO_MAX + 1,
+    CPU3_MIN_FREQ_NONTURBO_MAX + 1
+};
+
 #ifdef INTERACTION_BOOST
 int get_number_of_profiles()
 {
-    return 3;
+    return 5;
 }
 #endif
 
@@ -100,6 +138,15 @@ static int set_power_profile(int profile)
                 profile_high_performance, ARRAY_SIZE(profile_high_performance));
         profile_name = "performance";
 
+    } else if (profile == PROFILE_BIAS_POWER) {
+        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID, profile_bias_power,
+                ARRAY_SIZE(profile_bias_power));
+        profile_name = "bias power";
+
+    } else if (profile == PROFILE_BIAS_PERFORMANCE) {
+        ret = perform_hint_action(DEFAULT_PROFILE_HINT_ID,
+                profile_bias_performance, ARRAY_SIZE(profile_bias_performance));
+        profile_name = "bias perf";
     } else if (profile == PROFILE_BALANCED) {
         ret = 0;
         profile_name = "balanced";
@@ -112,10 +159,28 @@ static int set_power_profile(int profile)
     return ret;
 }
 
+static int resources_interaction_fling_boost[] = {
+    CPUS_ONLINE_MIN_3,
+    0x20F,
+    0x30F,
+    0x40F,
+    0x50F
+};
+
 static int resources_interaction_boost[] = {
     CPUS_ONLINE_MIN_2,
-    0x20B,
-    0x30B
+    0x20F,
+    0x30F,
+    0x40F,
+    0x50F
+};
+
+static int resources_launch[] = {
+    CPUS_ONLINE_MIN_3,
+    CPU0_MIN_FREQ_TURBO_MAX,
+    CPU1_MIN_FREQ_TURBO_MAX,
+    CPU2_MIN_FREQ_TURBO_MAX,
+    CPU3_MIN_FREQ_TURBO_MAX
 };
 
 int power_hint_override(power_hint_t hint, void *data)
@@ -158,11 +223,69 @@ int power_hint_override(power_hint_t hint, void *data)
             s_previous_boost_timespec = cur_boost_timespec;
             s_previous_duration = duration;
 
-            interaction(duration, ARRAY_SIZE(resources_interaction_boost),
-                    resources_interaction_boost);
+            if (duration >= 1500) {
+                interaction(duration, ARRAY_SIZE(resources_interaction_fling_boost),
+                        resources_interaction_fling_boost);
+            } else {
+                interaction(duration, ARRAY_SIZE(resources_interaction_boost),
+                        resources_interaction_boost);
+            }
+            return HINT_HANDLED;
+        case POWER_HINT_LAUNCH:
+            duration = 2000;
+            interaction(duration, ARRAY_SIZE(resources_launch),
+                    resources_launch);
             return HINT_HANDLED;
         default:
             break;
     }
     return HINT_NONE;
+}
+
+int set_interactive_override(int on)
+{
+    char governor[80];
+
+    if (get_scaling_governor(governor, sizeof(governor)) == -1) {
+        ALOGE("Can't obtain scaling governor.");
+        return HINT_NONE;
+    }
+
+    if (!on) {
+        /* Display off. */
+        /*
+         * We need to be able to identify the first display off hint
+         * and release the current lock holder
+         */
+        if (is_target_8974pro()) {
+            if (!first_display_off_hint) {
+                undo_initial_hint_action();
+                first_display_off_hint = 1;
+            }
+            /* used for all subsequent toggles to the display */
+            undo_hint_action(DISPLAY_STATE_HINT_ID_2);
+        }
+
+        if (is_ondemand_governor(governor)) {
+            int resource_values[] = {
+                MS_500, SYNC_FREQ_600, OPTIMAL_FREQ_600, THREAD_MIGRATION_SYNC_OFF
+            };
+            perform_hint_action(DISPLAY_STATE_HINT_ID,
+                    resource_values, ARRAY_SIZE(resource_values));
+        }
+    } else {
+        /* Display on */
+        if (is_target_8974pro()) {
+            int resource_values2[] = {
+                CPUS_ONLINE_MIN_2
+            };
+            perform_hint_action(DISPLAY_STATE_HINT_ID_2,
+                    resource_values2, ARRAY_SIZE(resource_values2));
+        }
+
+        if (is_ondemand_governor(governor)) {
+            undo_hint_action(DISPLAY_STATE_HINT_ID);
+        }
+    }
+    return HINT_HANDLED;
 }
