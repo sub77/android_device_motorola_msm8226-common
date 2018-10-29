@@ -82,12 +82,6 @@ PRODUCT_PACKAGES += \
     libqcomvisualizer \
     libqcomvoiceprocessing
 
-PRODUCT_PACKAGES += \
-    android.hardware.audio@2.0-impl \
-    android.hardware.audio.effect@2.0-impl \
-    android.hardware.broadcastradio@1.0-impl \
-    android.hardware.soundtrigger@2.0-impl
-
 # Audio configuration
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio_effects.xml:system/vendor/etc/audio_effects.xml \
@@ -95,13 +89,10 @@ PRODUCT_COPY_FILES += \
 
 # Bluetooth
 PRODUCT_PACKAGES += \
-    android.hardware.bluetooth@1.0-impl \
     libbt-vendor
 
 # Camera
 PRODUCT_PACKAGES += \
-    android.hardware.camera.provider@2.4-impl \
-    camera.device@1.0-impl \
     camera.msm8226 \
     libxml2 \
     libshim_skia \
@@ -145,18 +136,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 #PRODUCT_PACKAGES += \
 #    DeviceSettings
 
-# DRM
-PRODUCT_PACKAGES += \
-    android.hardware.drm@1.0-impl \
-    android.hardware.drm@1.0-service
-
 # Display
 PRODUCT_PACKAGES += \
-    android.hardware.graphics.allocator@2.0-impl \
-    android.hardware.graphics.allocator@2.0-service \
-    android.hardware.graphics.composer@2.1-impl \
-    android.hardware.graphics.mapper@2.0-impl \
-    android.hardware.memtrack@1.0-impl \
     copybit.msm8226 \
     gralloc.msm8226 \
     hwcomposer.msm8226 \
@@ -173,18 +154,9 @@ PRODUCT_PACKAGES += \
     FMRadio \
     libfmjni
 
-# GNSS HAL
-PRODUCT_PACKAGES += \
-    android.hardware.gnss@1.0-impl
-
 # GPS
 PRODUCT_PACKAGES += \
     gps.msm8226
-
-# HIDL
-PRODUCT_PACKAGES += \
-    android.hidl.manager@1.0 \
-    android.hidl.base@1.0
 
 # IRSC
 PRODUCT_COPY_FILES += \
@@ -192,17 +164,11 @@ PRODUCT_COPY_FILES += \
 
 # Keystore
 PRODUCT_PACKAGES += \
-    android.hardware.keymaster@3.0-impl \
     keystore.msm8226
 
 # Lights
 PRODUCT_PACKAGES += \
-    android.hardware.light@2.0-impl \
     lights.msm8226
-
-# LiveDisplay
-PRODUCT_PACKAGES += \
-    vendor.lineage.livedisplay@1.0-service-legacymm
 
 # Media
 PRODUCT_COPY_FILES += \
@@ -228,17 +194,11 @@ PRODUCT_PACKAGES += \
     libOmxCore \
     libOmxVdec \
     libOmxVenc \
-    libstagefrighthw \
-    android.hardware.media.omx@1.0-impl
+    libstagefrighthw
 
 # Perf
 PRODUCT_PACKAGES += \
     libshims_atomic
-
-# Power
-PRODUCT_PACKAGES += \
-    android.hardware.power@1.1-service-qti
-
 
 # Qualcomm
 PRODUCT_COPY_FILES += \
@@ -266,10 +226,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_COPY_FILES += \
      $(LOCAL_PATH)/rootdir/etc/ueventd.qcom.rc:system/vendor/ueventd.rc
 
-# RenderScript HAL
-PRODUCT_PACKAGES += \
-    android.hardware.renderscript@1.0-impl
-
 # Ril
 PRODUCT_PACKAGES += \
     libqsap_shim
@@ -281,7 +237,6 @@ PRODUCT_COPY_FILES += \
 
 # Sensors
 PRODUCT_PACKAGES += \
-    android.hardware.sensors@1.0-impl \
     sensors.msm8226
 
 # Thermal
@@ -300,12 +255,7 @@ PRODUCT_PACKAGES += \
 
 # USB
 PRODUCT_PACKAGES += \
-    android.hardware.usb@1.0-service.basic \
     com.android.future.usb.accessory
-
-# Vibrator
-PRODUCT_PACKAGES += \
-    android.hardware.vibrator@1.0-impl
 
 # WCNSS
 PRODUCT_COPY_FILES += \
@@ -315,12 +265,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += \
     wcnss_service \
     WCNSS_qcom_wlan_factory_nv.bin
-
-# WiFi HAL
-PRODUCT_PACKAGES += \
-    android.hardware.wifi@1.0-service \
-    vendor.qti.hardware.wifi.hostapd@1.0 \
-    vendor.qti.hardware.wifi.supplicant@1.0
 
 # Wifi
 PRODUCT_PACKAGES += \
@@ -341,3 +285,5 @@ PRODUCT_PACKAGES += \
 # Enable ADB authentication
 PRODUCT_ADB_KEYS := \
     $(LOCAL_PATH)/adbkey/adbkey.pub
+
+$(call inherit-product, device/motorola/msm8226-common/msm8226-treble.mk)
