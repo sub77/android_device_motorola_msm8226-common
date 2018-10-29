@@ -76,7 +76,6 @@ QCOM_BT_USE_BTNV := true
 
 # Camera
 USE_DEVICE_SPECIFIC_CAMERA := true
-TARGET_USES_MEDIA_EXTENSIONS := true
 
 TARGET_PROCESS_SDK_VERSION_OVERRIDE := \
     /system/bin/mediaserver=23 \
