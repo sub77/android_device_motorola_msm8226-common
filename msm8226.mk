@@ -87,10 +87,6 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/audio_effects.xml:system/vendor/etc/audio_effects.xml \
     $(LOCAL_PATH)/configs/audio_policy.conf:system/etc/audio_policy.conf
 
-# Bluetooth
-PRODUCT_PACKAGES += \
-    libbt-vendor
-
 # Camera
 PRODUCT_PACKAGES += \
     camera.msm8226 \

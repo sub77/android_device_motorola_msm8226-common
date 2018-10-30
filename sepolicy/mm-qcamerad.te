@@ -1,0 +1,25 @@
+allow mm-qcamerad system_data_file:sock_file unlink;
+
+allow mm-qcamerad camera_data_file:sock_file rw_file_perms;
+allow mm-qcamerad camera_data_file:unix_dgram_socket sendto;
+allow mm-qcamerad camera_data_file:unix_stream_socket connectto;
+allow mm-qcamerad camera_device:chr_file { open read write };
+allow mm-qcamerad camera_socket:sock_file { create unlink };
+
+allow mm-qcamerad system_prop:property_service set;
+
+# mm-qcamerad needs to set persist.camera. property
+set_prop(mm-qcamerad, camera_prop)
+
+# whitelist ioctl commands
+allow mm-qcamerad self:socket create_socket_perms;
+allowxperm mm-qcamerad camera_device:socket ioctl msm_sock_ipc_ioctls;
+allowxperm mm-qcamerad camera_socket:sock_file ioctl msm_sock_ipc_ioctls;
+
+#============= mm-qcamerad ==============
+# TODO: wrong labeled dest!
+allow mm-qcamerad proc:file { open read };
+
+# mm-qcamera-d need access to /sys/devices/sony_camera_[01]/info
+allow mm-qcamerad sysfs:file r_file_perms;
+

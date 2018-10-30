@@ -1,8 +1,9 @@
 #### to move back to common: 
 type camera_socket, file_type, data_file_type;
-type per_mgr_service,             vndservice_manager_type;
+type camera_socket_file, file_type, data_file_type, core_data_file_type;
+type per_mgr_service, vndservice_manager_type;
 type per_mgr_state_prop, property_type;
-type sensors_data_file, file_type, data_file_type;
+type sensors_data_file, file_type, data_file_type, core_data_file_type;
 type boot_animation_prop, property_type;
 type rmnet_mux_prop, property_type;
 
