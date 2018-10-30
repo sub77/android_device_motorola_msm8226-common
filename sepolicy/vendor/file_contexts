@@ -22,6 +22,10 @@
 /system/vendor/bin/init\.mmi\.touch\.sh                                  u:object_r:mmi_touch_exec:s0
 /system/vendor/bin/init\.qcom\.ril\.sh                                   u:object_r:qti_init_shell_exec:s0 
 
+
+#/system/vendor/bin/hw/android\.hardware\.drm@1\.0-service\.widevine      u:object_r:hal_drm_default_exec:s
+/system/vendor/bin/hw/android\.hardware\.usb@1\.0-service                u:object_r:hal_usb_default_exec:s0
+/system/vendor/bin/hw/android\.hardware\.usb@1\.0-service\.basic         u:object_r:hal_usb_default_exec:s0
 /system/vendor/bin/hw/android\.hardware\.power@1\.1-service-qti          u:object_r:hal_power_default_exec:s0
 
 # Camera
