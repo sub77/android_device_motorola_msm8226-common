@@ -27,7 +27,7 @@
 
 import /system/etc/init/init.omni.rc
 import /system/vendor/etc/init/hw/init.qcom.usb.rc
-import init.target.rc
+import /system/vendor/etc/init/hw/init.target.rc
 
 on early-init
     # Create firmware mount point
