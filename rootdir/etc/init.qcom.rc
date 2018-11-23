@@ -73,9 +73,16 @@ on fs
     wait /cache/pds-dump.img
     mount ext3 loop@/cache/pds-dump.img /pds
     restorecon /pds
+
+    # activate zram
+    write /proc/sys/vm/page-cluster 0
     
     # Start HW service manager early
     start hwservicemanager
+
+on property:sys.boot_completed=1
+    # Enable ZRAM on boot_complete
+    swapon_all fstab.qcom
 
 on late-fs
     # Start services for bootanim
