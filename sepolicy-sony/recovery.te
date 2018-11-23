@@ -1,5 +1,0 @@
-recovery_only(`
-  allow recovery sysfs_msm_subsys:dir search;
-  allow recovery sysfs_fs_ext4_features:dir search;
-  allow recovery sysfs_fs_ext4_features:file r_file_perms;
-')

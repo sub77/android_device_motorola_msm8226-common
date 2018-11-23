@@ -1,8 +1,0 @@
-type sensord, domain;
-type sensord_exec, exec_type, file_type;
-init_daemon_domain(sensord)
-
-allow sensord self:capability { fowner fsetid };
-
-allow sensord input_device:chr_file r_file_perms;
-allow sensord input_device:dir search;

@@ -1,1 +1,0 @@
-allow installd firmware_file:filesystem quotaget;

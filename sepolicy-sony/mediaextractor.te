@@ -1,2 +1,0 @@
-allow mediaextractor { sdcardfs vfat }:file { getattr read };
-allow mediaextractor system_server:fifo_file { append write };
