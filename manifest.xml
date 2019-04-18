@@ -273,7 +273,7 @@
         <version>1.0</version>
         <interface>
             <name>IUsbRestrict</name>
-            <instance>default</instance> </manifest>
+            <instance>default</instance> 
         </interface>
     </hal>
 </manifest>
