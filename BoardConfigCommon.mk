@@ -161,7 +161,9 @@ USE_DEX2OAT_DEBUG := false
 DONT_DEXPREOPT_PREBUILTS := true
 
 # SELinux
+#include device/qcom/sepolicy/sepolicy.mk
 include device/qcom/sepolicy-legacy/sepolicy.mk
+include vendor/omni/sepolicy/sepolicy.mk
 
 BOARD_SEPOLICY_DIRS += $(VENDOR_PATH)/sepolicy
 BOARD_PLAT_PRIVATE_SEPOLICY_DIR += $(VENDOR_PATH)/sepolicy/private
