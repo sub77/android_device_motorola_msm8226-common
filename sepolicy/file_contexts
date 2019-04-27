@@ -70,3 +70,6 @@
 /sys/devices/f9925000\.i2c/i2c-3/3-0048/temp1_input         u:object_r:sysfs_thermal:s0
 /sys/devices/f9925000\.i2c/i2c-3/3-0048/temp1_max           u:object_r:sysfs_thermal:s0
 /sys/devices/f9925000\.i2c/i2c-3/3-0048/temp1_max_hyst      u:object_r:sysfs_thermal:s0
+
+# USB HAL
+/(vendor|system/vendor)/bin/hw/android\.hardware\.usb@1\.0-service\.basic u:object_r:hal_usb_default_exec:s0
