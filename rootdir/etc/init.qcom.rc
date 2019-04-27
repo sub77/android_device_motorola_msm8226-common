@@ -91,6 +91,9 @@ on late-fs
 
     mount_all /vendor/etc/fstab.qcom --late
 
+    # Legacy ril-daemon is now disabled by default
+    enable ril-daemon
+
 on post-fs
     # Allow writing to the kernel trace log.
     chmod 0222 /sys/kernel/debug/tracing/trace_marker
