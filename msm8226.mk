@@ -305,11 +305,6 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
     vendor.lineage.trust@1.0-service
 
-# /system FS resize
-PRODUCT_PACKAGES += \
-    e2fsck_static \
-    resize2fs_static
-
 # USB
 PRODUCT_PACKAGES += \
     android.hardware.usb@1.0-service.basic \
