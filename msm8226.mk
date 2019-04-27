@@ -66,6 +66,10 @@ PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/permissions/com.motorola.software.storageoptimizer.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/com.motorola.software.storageoptimizer.xml \
     $(LOCAL_PATH)/permissions/com.motorola.software.x_line.xml:$(TARGET_COPY_OUT_VENDOR)/etc/permissions/com.motorola.software.x_line.xml
 
+# Privapp permissions
+PRODUCT_COPY_FILES += \
+    $(LOCAL_PATH)/configs/privapp_permissions_misc.xml:system/etc/permissions/privapp_permissions_misc.xml
+
 PRODUCT_ENFORCE_RRO_TARGETS := \
     framework-res
 

@@ -1,0 +1,14 @@
+[
+  {
+    "remote":      "omnirom",
+    "repository":  "android_packages_apps_FMRadio",
+    "target_path": "packages/apps/FMRadio",
+    "revision":    "android-9.0"
+  },
+  {
+    "remote":      "omnirom",
+    "repository":  "android_hardware_qcom_fm",
+    "target_path": "hardware/qcom/fm",
+    "revision":    "android-9.0"
+  }
+]
