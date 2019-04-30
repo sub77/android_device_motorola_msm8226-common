@@ -127,7 +127,7 @@ PRODUCT_PACKAGES += \
     libshims_camera \
     libshim_qcopt \
     libshims_sensorlistener \
-    Snap
+    SnapdragonCamera2
 
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/prebuilts/libskia.so:system/lib/libskia.so
