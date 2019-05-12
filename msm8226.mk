@@ -65,9 +65,6 @@ PRODUCT_COPY_FILES += \
 PRODUCT_COPY_FILES += \
     $(LOCAL_PATH)/configs/privapp_permissions_misc.xml:system/etc/permissions/privapp_permissions_misc.xml
 
-PRODUCT_ENFORCE_RRO_TARGETS := \
-    framework-res
-
 # Screen density
 PRODUCT_AAPT_CONFIG := normal
 PRODUCT_AAPT_PREF_CONFIG := xhdpi
